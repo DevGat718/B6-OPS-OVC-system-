@@ -433,6 +433,37 @@ a:hover {
     font-size: 15px;
 }
 
+/* Submit and Vote layout split grids */
+.submit-layout {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+.submit-sidebar {
+    position: sticky;
+    top: 20px;
+}
+@media (max-width: 1024px) {
+    .submit-layout {
+        grid-template-columns: 1fr;
+    }
+    .submit-sidebar {
+        display: none;
+    }
+}
+body.mobile-view .submit-sidebar {
+    display: none;
+}
+
+/* Outreach Flyer Grid */
+.outreach-flyer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 16px;
+}
+
 /* ==========================================================================
    Dashboard Metrics & Layout
    ========================================================================== */
@@ -2044,5 +2075,76 @@ body.mobile-view .filter-controls-group {
 }
 body.mobile-view .filter-item {
     width: 100%;
+}
+
+/* Real Mobile Device Styling Fallback (width <= 768px) */
+@media (max-width: 768px) {
+    body {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+    }
+    .main-nav {
+        position: sticky !important;
+        bottom: 0 !important;
+        z-index: 1000 !important;
+        border-top: 1px solid var(--border-color) !important;
+        border-bottom: none !important;
+        order: 2 !important;
+    }
+    .nav-links {
+        justify-content: space-around !important;
+        padding: 0 !important;
+        display: flex !important;
+    }
+    .nav-item {
+        padding: 10px 8px !important;
+        flex-direction: column !important;
+        gap: 2px !important;
+        font-size: 10px !important;
+        border-bottom: none !important;
+        border-top: 3px solid transparent !important;
+    }
+    .nav-item.active {
+        border-bottom: none !important;
+        border-top: 3px solid var(--accent-color) !important;
+    }
+    .app-main-content {
+        padding: 12px !important;
+        flex: 1 !important;
+    }
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .dashboard-layout,
+    .admin-polls-layout {
+        grid-template-columns: 1fr !important;
+    }
+    .form-grid-inner,
+    .form-grid-2col,
+    .details-row-split {
+        grid-template-columns: 1fr !important;
+    }
+    .modal-dialog {
+        width: 95% !important;
+        max-height: 85vh !important;
+    }
+    .header-container {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+    .header-controls {
+        flex-direction: column !important;
+        align-items: center !important;
+        width: 100% !important;
+        gap: 8px !important;
+    }
+    .control-group {
+        width: 100% !important;
+        justify-content: space-between !important;
+        display: flex !important;
+    }
 }
 

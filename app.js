@@ -796,19 +796,28 @@ function loadResultsPage() {
 
 // --- Quarterly Transparency Updates Loading ---
 function loadUpdatesPage() {
-    const quarterVal = document.getElementById('update-quarter-select').value;
+    const yearVal = parseInt(document.getElementById('report-year-select').value);
+    const quarterVal = document.getElementById('report-quarter-select').value;
     const content = document.getElementById('quarterly-report-content');
 
-    // Filter issues in target periods (Q1 2026 vs Q4 2025)
+    // Filter issues in target periods dynamically
     let rangeStart, rangeEnd, labelText;
-    if (quarterVal === 'Q1-2026') {
-        rangeStart = new Date('2026-01-01T00:00:00');
-        rangeEnd = new Date('2026-03-31T23:59:59');
-        labelText = 'Q1 2026 (Jan - Mar 2026)';
+    if (quarterVal === 'Q1') {
+        rangeStart = new Date(`${yearVal}-01-01T00:00:00`);
+        rangeEnd = new Date(`${yearVal}-03-31T23:59:59`);
+        labelText = `Q1 ${yearVal} (Jan - Mar ${yearVal})`;
+    } else if (quarterVal === 'Q2') {
+        rangeStart = new Date(`${yearVal}-04-01T00:00:00`);
+        rangeEnd = new Date(`${yearVal}-06-30T23:59:59`);
+        labelText = `Q2 ${yearVal} (Apr - Jun ${yearVal})`;
+    } else if (quarterVal === 'Q3') {
+        rangeStart = new Date(`${yearVal}-07-01T00:00:00`);
+        rangeEnd = new Date(`${yearVal}-09-30T23:59:59`);
+        labelText = `Q3 ${yearVal} (Jul - Sep ${yearVal})`;
     } else {
-        rangeStart = new Date('2025-10-01T00:00:00');
-        rangeEnd = new Date('2025-12-31T23:59:59');
-        labelText = 'Q4 2025 (Oct - Dec 2025)';
+        rangeStart = new Date(`${yearVal}-10-01T00:00:00`);
+        rangeEnd = new Date(`${yearVal}-12-31T23:59:59`);
+        labelText = `Q4 ${yearVal} (Oct - Dec ${yearVal})`;
     }
 
     const quarterIssues = issues.filter(ir => {
@@ -1628,9 +1637,17 @@ function handleRoleChange() {
 }
 
 // --- Visual Theme Changer ---
+let activeTheme = 'version-a';
 function handleThemeChange() {
-    const theme = document.getElementById('theme-select').value;
-    document.documentElement.setAttribute('data-theme', theme);
+    const val = document.getElementById('theme-select').value;
+    if (val === 'mobile-sim') {
+        document.body.classList.add('mobile-view');
+        document.documentElement.setAttribute('data-theme', activeTheme);
+    } else {
+        document.body.classList.remove('mobile-view');
+        activeTheme = val;
+        document.documentElement.setAttribute('data-theme', val);
+    }
 }
 
 // --- Quick Login Sync Helper ---
@@ -1682,8 +1699,9 @@ function bindEvents() {
     document.getElementById('admin-voters-search').addEventListener('input', loadAdminVotersRegistry);
     document.getElementById('btn-export-voters').addEventListener('click', exportVoterLogToCSV);
 
-    // Quarterly quarter selector
-    document.getElementById('update-quarter-select').addEventListener('change', loadUpdatesPage);
+    // Quarterly selectors
+    document.getElementById('report-year-select').addEventListener('change', loadUpdatesPage);
+    document.getElementById('report-quarter-select').addEventListener('change', loadUpdatesPage);
 
     // 4. Header Role and UI Theme controllers
     document.getElementById('role-select').addEventListener('change', (e) => {
@@ -1708,17 +1726,7 @@ function bindEvents() {
     // 5. Utility simulator triggers
     document.getElementById('btn-reset-demo-data').addEventListener('click', resetDemoData);
 
-    document.getElementById('btn-toggle-mobile').addEventListener('click', () => {
-        const isMobile = document.body.classList.toggle('mobile-view');
-        const btn = document.getElementById('btn-toggle-mobile');
-        if (isMobile) {
-            btn.textContent = "Reset to Desktop View";
-            btn.classList.add('btn-accent');
-        } else {
-            btn.textContent = "Simulate Mobile View";
-            btn.classList.remove('btn-accent');
-        }
-    });
+
 
     // 6. Admin subtab toggles
     document.querySelectorAll('.admin-tab-btn').forEach(btn => {
@@ -1731,12 +1739,236 @@ function bindEvents() {
             document.getElementById(`admin-tab-${targetTab}`).classList.add('active');
         });
     });
+
+    // 7. Admin outreach flyer print triggers
+    document.getElementById('btn-print-flyer-submit').addEventListener('click', () => printFlyer('submit'));
+    document.getElementById('btn-print-flyer-vote').addEventListener('click', () => printFlyer('vote'));
+}
+
+// --- Dynamic QR Code Generation ---
+function generateQRCodes() {
+    const basePath = window.location.origin + window.location.pathname;
+    const submitUrl = `${basePath}#submit-issue`;
+    const voteUrl = `${basePath}#vote`;
+
+    // Set URLs text in sidebars
+    const submitUrlEl = document.getElementById('url-text-submit-issue');
+    if (submitUrlEl) submitUrlEl.textContent = submitUrl;
+
+    const voteUrlEl = document.getElementById('url-text-vote');
+    if (voteUrlEl) voteUrlEl.textContent = voteUrl;
+
+    // Generate QR API strings (size 250x250, clean white background)
+    const submitQrApi = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(submitUrl)}`;
+    const voteQrApi = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(voteUrl)}`;
+
+    // Set images src
+    const imgSubmit = document.getElementById('qr-submit-issue');
+    if (imgSubmit) imgSubmit.src = submitQrApi;
+
+    const imgVote = document.getElementById('qr-vote');
+    if (imgVote) imgVote.src = voteQrApi;
+
+    const imgAdminSubmit = document.getElementById('qr-admin-outreach-submit');
+    if (imgAdminSubmit) imgAdminSubmit.src = submitQrApi;
+
+    const imgAdminVote = document.getElementById('qr-admin-outreach-vote');
+    if (imgAdminVote) imgAdminVote.src = voteQrApi;
+}
+
+// --- Print Outreach Flyer Trigger ---
+function printFlyer(type) {
+    const basePath = window.location.origin + window.location.pathname;
+    const targetUrl = type === 'submit' ? `${basePath}#submit-issue` : `${basePath}#vote`;
+    const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
+
+    const titleText = type === 'submit' ? 'SUBMIT OPERATIONS ISSUES' : 'CAST DEPARTMENT VOTES';
+    const descText = type === 'submit' 
+        ? 'Scan this code to report terminal bottlenecks, facility requests, scheduling issues, and coordinator ideas directly to the AVC committee.'
+        : 'Scan this code to review active coordinator proposals and cast your confidential vote on pending operational changes.';
+
+    const printWindow = window.open('', '_blank', 'width=800,height=800');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Print Outreach Flyer</title>
+            <style>
+                body {
+                    font-family: 'Outfit', 'Inter', sans-serif;
+                    text-align: center;
+                    padding: 40px;
+                    color: #0f172a;
+                    background-color: #ffffff;
+                }
+                .flyer-container {
+                    border: 8px solid #00205B;
+                    border-radius: 16px;
+                    padding: 40px;
+                    max-width: 600px;
+                    margin: 0 auto;
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                }
+                .brand-header {
+                    font-size: 28px;
+                    font-weight: 850;
+                    color: #00205B;
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
+                    margin-bottom: 5px;
+                }
+                .brand-subtitle {
+                    font-size: 14px;
+                    color: #0082C9;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    margin-bottom: 25px;
+                }
+                .flyer-title {
+                    font-size: 24px;
+                    font-weight: 800;
+                    color: #0f172a;
+                    margin-bottom: 15px;
+                    border-top: 2px dashed #e2e8f0;
+                    padding-top: 20px;
+                }
+                .flyer-description {
+                    font-size: 14px;
+                    color: #475569;
+                    line-height: 1.5;
+                    margin-bottom: 30px;
+                    padding: 0 20px;
+                }
+                .qr-box {
+                    border: 2px solid #e2e8f0;
+                    padding: 20px;
+                    border-radius: 12px;
+                    display: inline-block;
+                    background-color: #ffffff;
+                    margin-bottom: 25px;
+                }
+                .qr-img {
+                    width: 250px;
+                    height: 250px;
+                    display: block;
+                }
+                .instructions {
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: #00205B;
+                    margin-bottom: 10px;
+                }
+                .instructions-list {
+                    list-style: none;
+                    padding: 0;
+                    font-size: 13px;
+                    color: #475569;
+                    margin-bottom: 20px;
+                }
+                .instructions-list li {
+                    margin-bottom: 6px;
+                }
+                .url-box {
+                    font-family: monospace;
+                    font-size: 11px;
+                    color: #64748b;
+                    background-color: #f8fafc;
+                    padding: 8px 12px;
+                    border-radius: 4px;
+                    word-break: break-all;
+                }
+                @media print {
+                    body {
+                        padding: 0;
+                    }
+                    .flyer-container {
+                        border: 6px solid #00205B;
+                        box-shadow: none;
+                        max-width: 100%;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="flyer-container">
+                <div class="brand-header">✈ JETBLUE</div>
+                <div class="brand-subtitle">JFK OPS AVC COORDINATOR SYSTEM</div>
+                
+                <h2 class="flyer-title">\${titleText}</h2>
+                <p class="flyer-description">\${descText}</p>
+                
+                <div class="qr-box">
+                    <img src="\${qrApi}" class="qr-img" alt="QR Code">
+                </div>
+                
+                <div class="instructions">SCAN TO ACCESS</div>
+                <ul class="instructions-list">
+                    <li>1. Open the camera on your phone or mobile tablet</li>
+                    <li>2. Scan the code above to load the secure web page</li>
+                    <li>3. Submit your report or cast your confidential vote</li>
+                </ul>
+                
+                <div class="url-box">\${targetUrl}</div>
+            </div>
+            <script>
+                window.onload = function() {
+                    window.print();
+                    setTimeout(function() { window.close(); }, 500);
+                };
+            </script>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+}
+
+// --- Set current Year and Quarter on Load ---
+function initCurrentQuarterSelector() {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-11
+    
+    // Determine quarter
+    let currentQuarter = 'Q1';
+    if (currentMonth >= 3 && currentMonth <= 5) {
+        currentQuarter = 'Q2';
+    } else if (currentMonth >= 6 && currentMonth <= 8) {
+        currentQuarter = 'Q3';
+    } else if (currentMonth >= 9 && currentMonth <= 11) {
+        currentQuarter = 'Q4';
+    }
+    
+    // Set Year selector
+    const yearSelect = document.getElementById('report-year-select');
+    if (yearSelect) {
+        let optionExists = false;
+        for (let i = 0; i < yearSelect.options.length; i++) {
+            if (yearSelect.options[i].value === String(currentYear)) {
+                optionExists = true;
+                break;
+            }
+        }
+        if (optionExists) {
+            yearSelect.value = String(currentYear);
+        } else {
+            yearSelect.value = '2026';
+        }
+    }
+    
+    // Set Quarter selector
+    const quarterSelect = document.getElementById('report-quarter-select');
+    if (quarterSelect) {
+        quarterSelect.value = currentQuarter;
+    }
 }
 
 // --- App Initialization ---
 window.addEventListener('DOMContentLoaded', () => {
     loadDataFromStorage();
     bindEvents();
+    generateQRCodes();
+    initCurrentQuarterSelector();
     
     // Initial UI state setup
     handleRoleChange();

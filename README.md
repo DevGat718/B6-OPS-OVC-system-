@@ -1,6 +1,6 @@
 # JFK Operations: AVC Issue Request & Voting System
 
-A clean, responsive, and secure internal airline operations application designed for JFK Operations Coordinators to submit department improvements, track progress, participate in votes, and review quarterly transparency reports.
+A clean, responsive, and secure internal airline operations application designed for JFK Operations Coordinators to submit department improvements, track progress, participate in votes, and review quarterly transparency reports.git
 
 Built with **JetBlue-inspired aesthetics**, high-fidelity animations, and full mobile optimization.
 
@@ -26,9 +26,10 @@ The application supports three distinct visual design directions:
   * Checks for duplicate voting attempts by Crewmember ID.
   * Restricts results to aggregate percentages to maintain **voter confidentiality**.
 * **Confidential Voter Registry (AVC Admin Portal)**: A locked voter tracking log to verify ballots and prevent double-voting. Flags duplicate entries in red and allows CSV export for audits.
-* **Quarterly Updates & PDF Exporter**: View dynamic summaries of quarterly results (Q1 2026/Q4 2025). The page features full print styling sheet overrides to output clean, clean A4/Letter PDF reports without sidebar menus or page backgrounds.
+* **Quarterly Updates & PDF Exporter**: View dynamic summaries of quarterly results. On load, the system auto-detects the current date (e.g., August 2026 selects **2026** and **Q3** automatically). Provides separate **Year** and **Quarter** dropdown controls to dynamically load metrics and categorized issues for any period. Features print layout overrides for clean A4 PDF reports.
 * **Mobile Simulation Overlay**: Instantly test the crewmember view with a responsive frame overlay that converts the main navigation into a mobile-friendly bottom tab bar.
 * **Complete Database Reset**: A **"Reset Database"** button in the top-right header controls allows admins to wipe out all custom issues, polls, and votes to start the system from a clean slate. Features a dual-confirmation safety prompt to prevent accidental data loss.
+* **Dynamic QR Codes & Outreach Flyers**: Generates live QR codes linking directly to the **Submit Issue** and **Vote** pages. Includes a printable flyer generator in the Admin Portal for terminal signage.
 
 ---
 

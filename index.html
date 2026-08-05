@@ -28,7 +28,6 @@
             
             <!-- Right controls -->
             <div class="header-controls">
-                <button class="btn btn-sm btn-outline header-btn" id="btn-toggle-mobile">Simulate Mobile View</button>
                 <button class="btn btn-sm btn-outline header-btn" id="btn-reset-demo-data" style="margin-right: 12px;">Reset Database</button>
                 
                 <div class="control-group">
@@ -40,11 +39,12 @@
                 </div>
                 
                 <div class="control-group">
-                    <label for="theme-select">Visual UI:</label>
+                    <label for="theme-select">Viewing Options:</label>
                     <select id="theme-select" class="theme-selector">
                         <option value="version-a">Version A: Classic Corporate</option>
                         <option value="version-b">Version B: Modern Operations</option>
                         <option value="version-c">Version C: Minimal Aviation</option>
+                        <option value="mobile-sim">Mobile View (Demo Display)</option>
                     </select>
                 </div>
             </div>
@@ -202,7 +202,8 @@
 
         <!-- PAGE 2: SUBMIT ISSUE -->
         <section id="page-submit-issue" class="page-section">
-            <div class="form-container">
+            <div class="submit-layout">
+                <div class="form-container">
                 <div class="form-header">
                     <h2>JFK OPS ISSUE REQUEST</h2>
                     <p>Submit workplace issues, process bottlenecks, or improvement proposals directly to your AVC representatives.</p>
@@ -348,12 +349,27 @@
                         
                         <div class="success-actions">
                             <button class="btn btn-primary" onclick="resetSubmitFormAndNavigate('open-issues')">Track Issue</button>
-                            <button class="btn btn-outline" onclick="resetSubmitFormAndNavigate('submit-issue')">Submit Another Issue</button>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
+            
+            <div class="submit-sidebar">
+                <div class="card qr-card text-center" style="padding: 20px;">
+                    <div class="card-header" style="background:transparent; border-bottom:none; padding:10px 0;">
+                        <h3 class="card-title" style="font-size:16px;">Scan to Share Feedback</h3>
+                    </div>
+                    <div class="card-body" style="padding:10px 0;">
+                        <p class="text-muted mb-3" style="font-size:12.5px; line-height:1.4;">Submit feedback, safety issues, and ideas directly from your mobile device while working on the terminal floor.</p>
+                        <div class="qr-container" style="background-color:#ffffff; padding:12px; border-radius:8px; display:inline-block; border:1px solid var(--border-color); margin: 10px auto;">
+                            <img id="qr-submit-issue" src="" alt="Submit Issue QR Code" class="qr-image" style="width: 140px; height: 140px; display:block;" onerror="this.parentElement.style.display='none';">
+                        </div>
+                        <span class="qr-url-text mt-2" id="url-text-submit-issue" style="display:block; font-size:11px; color:var(--text-muted); font-family:var(--font-mono); word-break:break-all; background-color:var(--bg-secondary); padding:4px 8px; border-radius:4px;">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
         <!-- PAGE 3: OPEN ISSUES -->
         <section id="page-open-issues" class="page-section">
@@ -440,20 +456,39 @@
 
         <!-- PAGE 4: VOTE -->
         <section id="page-vote" class="page-section">
-            <div class="section-header">
-                <h2>OPS COORDINATOR VOTING</h2>
-                <p class="section-description">Understanding coordinator preference to shape AVC negotiations and proposals. Votes are confidential.</p>
-            </div>
+            <div class="submit-layout">
+                <div class="submit-main">
+                    <div class="section-header">
+                        <h2>OPS COORDINATOR VOTING</h2>
+                        <p class="section-description">Understanding coordinator preference to shape AVC negotiations and proposals. Votes are confidential.</p>
+                    </div>
 
-            <!-- Active Polls List -->
-            <div class="polls-grid" id="polls-list-container">
-                <!-- Dynamic poll cards -->
-            </div>
-            
-            <div class="no-results hidden" id="no-polls-found-message">
-                <span class="no-results-icon">🗳️</span>
-                <h3>No Active Coordinator Polls</h3>
-                <p>There are currently no active votes open for the department. Check back when AVC creates a vote.</p>
+                    <!-- Active Polls List -->
+                    <div class="polls-grid" id="polls-list-container">
+                        <!-- Dynamic poll cards -->
+                    </div>
+                    
+                    <div class="no-results hidden" id="no-polls-found-message">
+                        <span class="no-results-icon">🗳️</span>
+                        <h3>No Active Coordinator Polls</h3>
+                        <p>There are currently no active votes open for the department. Check back when AVC creates a vote.</p>
+                    </div>
+                </div>
+                
+                <div class="submit-sidebar">
+                    <div class="card qr-card text-center" style="padding: 20px;">
+                        <div class="card-header" style="background:transparent; border-bottom:none; padding:10px 0;">
+                            <h3 class="card-title" style="font-size:16px;">Scan to Vote on Mobile</h3>
+                        </div>
+                        <div class="card-body" style="padding:10px 0;">
+                            <p class="text-muted mb-3" style="font-size:12.5px; line-height:1.4;">Scan this QR code to quickly load active department votes and cast your ballot from your phone in the crew lounge.</p>
+                            <div class="qr-container" style="background-color:#ffffff; padding:12px; border-radius:8px; display:inline-block; border:1px solid var(--border-color); margin: 10px auto;">
+                                <img id="qr-vote" src="" alt="Active Votes QR Code" class="qr-image" style="width: 140px; height: 140px; display:block;" onerror="this.parentElement.style.display='none';">
+                            </div>
+                            <span class="qr-url-text mt-2" id="url-text-vote" style="display:block; font-size:11px; color:var(--text-muted); font-family:var(--font-mono); word-break:break-all; background-color:var(--bg-secondary); padding:4px 8px; border-radius:4px;">Loading...</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -477,9 +512,18 @@
                     <p class="section-description">Quarterly transparency summaries. Closing the loop on your submitted issues.</p>
                 </div>
                 <div class="update-selectors-row no-print">
-                    <select id="update-quarter-select" class="theme-selector mr-2">
-                        <option value="Q1-2026">Q1 2026 Report (Current)</option>
-                        <option value="Q4-2025">Q4 2025 Report</option>
+                    <label for="report-year-select" style="font-size:12.5px; margin-right:6px; color:var(--text-muted);">Year:</label>
+                    <select id="report-year-select" class="theme-selector mr-3" style="min-width: 80px; padding: 4px 8px; border-radius: 4px;">
+                        <option value="2026">2026</option>
+                        <option value="2025">2025</option>
+                    </select>
+                    
+                    <label for="report-quarter-select" style="font-size:12.5px; margin-right:6px; color:var(--text-muted);">Quarter:</label>
+                    <select id="report-quarter-select" class="theme-selector mr-3" style="min-width: 140px; padding: 4px 8px; border-radius: 4px;">
+                        <option value="Q1">Q1: Jan - Mar</option>
+                        <option value="Q2">Q2: Apr - Jun</option>
+                        <option value="Q3">Q3: Jul - Sep</option>
+                        <option value="Q4">Q4: Oct - Dec</option>
                     </select>
                     <button class="btn btn-outline btn-print" onclick="window.print()">
                         <svg viewBox="0 0 24 24" class="btn-icon"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
@@ -514,6 +558,7 @@
                     <button class="admin-tab-btn active" data-admin-tab="admin-issues">Issue Requests Master Table</button>
                     <button class="admin-tab-btn" data-admin-tab="admin-polls">Poll & Vote Builder</button>
                     <button class="admin-tab-btn" data-admin-tab="admin-voters">Confidential Voter Log</button>
+                    <button class="admin-tab-btn" data-admin-tab="admin-outreach">Outreach QR Flyer</button>
                 </div>
 
                 <!-- Admin Tab 1: Issues Management -->
@@ -712,6 +757,42 @@
                                     <!-- Dynamic rows loaded from localStorage -->
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Tab 4: Outreach Flyer -->
+                <div class="admin-tab-content" id="admin-tab-admin-outreach">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Voter Engagement & Terminal Signage</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-4">Print and post these flyers in the JFK Ops Crew Room, briefing areas, and break rooms so coordinators can easily access the portal on their mobile devices.</p>
+                            
+                            <div class="outreach-flyer-grid">
+                                <div class="flyer-card text-center" style="background-color:var(--bg-secondary); padding:24px; border-radius:8px; border:1px solid var(--border-color); text-align:center; margin-bottom:20px;">
+                                    <h4 style="color:#ffffff; margin-top:0; font-size:16px;">1. SUBMIT ISSUES FLYER</h4>
+                                    <p class="text-muted mb-3" style="font-size:12.5px;">Scan to report terminal, gate, or flight deck coordinator issues.</p>
+                                    <div class="qr-container mb-3" style="background-color:#ffffff; padding:16px; border-radius:8px; display:inline-block; border:1px solid var(--border-color);">
+                                        <img id="qr-admin-outreach-submit" src="" alt="Submit Issue QR" class="qr-image" style="width: 160px; height: 160px; display:block;">
+                                    </div>
+                                    <div style="margin-top:10px;">
+                                        <button class="btn btn-outline btn-sm" id="btn-print-flyer-submit">Print Submit Flyer</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="flyer-card text-center" style="background-color:var(--bg-secondary); padding:24px; border-radius:8px; border:1px solid var(--border-color); text-align:center; margin-bottom:20px;">
+                                    <h4 style="color:#ffffff; margin-top:0; font-size:16px;">2. ACTIVE VOTES FLYER</h4>
+                                    <p class="text-muted mb-3" style="font-size:12.5px;">Scan to cast votes on pending coordinator improvements.</p>
+                                    <div class="qr-container mb-3" style="background-color:#ffffff; padding:16px; border-radius:8px; display:inline-block; border:1px solid var(--border-color);">
+                                        <img id="qr-admin-outreach-vote" src="" alt="Active Votes QR" class="qr-image" style="width: 160px; height: 160px; display:block;">
+                                    </div>
+                                    <div style="margin-top:10px;">
+                                        <button class="btn btn-outline btn-sm" id="btn-print-flyer-vote">Print Vote Flyer</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
