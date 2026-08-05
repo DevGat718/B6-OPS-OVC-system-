@@ -1,0 +1,11 @@
+# OS junk files
+.DS_Store
+Thumbs.db
+
+# IDE configurations
+.vscode/
+.idea/
+
+# Local backups or drafts
+*.log
+scratch/

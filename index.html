@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="version-a">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JFK OPS - AVC Issue Request & Voting System</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <!-- Main Navigation Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <!-- Left brand & Centerpiece combined -->
+            <div class="brand">
+                <div class="logo-area">
+                    <span class="logo-icon">✈</span>
+                    <h1 class="brand-title">JETBLUE</h1>
+                    <span class="brand-divider">|</span>
+                    <span class="brand-dept">JFK OPS AVC</span>
+                </div>
+                <div class="brand-tagline">Inspiring Humanity and Innovating in Aviation</div>
+                <div class="brand-author">Created by DMG Official</div>
+            </div>
+            
+            <!-- Right controls -->
+            <div class="header-controls">
+                <div class="control-group">
+                    <label for="role-select">Access Level:</label>
+                    <select id="role-select" class="role-selector">
+                        <option value="crewmember">Crewmember</option>
+                        <option value="admin">AVC Admin</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="theme-select">Visual UI:</label>
+                    <select id="theme-select" class="theme-selector">
+                        <option value="version-a">Version A: Classic Corporate</option>
+                        <option value="version-b">Version B: Modern Operations</option>
+                        <option value="version-c">Version C: Minimal Aviation</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Bar -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <ul class="nav-links">
+                <li>
+                    <a href="#" class="nav-item active" data-target="dashboard">
+                        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-item" data-target="submit-issue">
+                        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        Submit Issue
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-item" data-target="open-issues">
+                        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm0-4H7V7h10v2zm0 8H7v-2h10v2z"/></svg>
+                        Open Issues
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-item" data-target="vote">
+                        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                        Vote
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-item" data-target="results">
+                        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                        Results
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-item" data-target="updates">
+                        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                        Quarterly Updates
+                    </a>
+                </li>
+                <li class="admin-only-nav hidden">
+                    <a href="#" class="nav-item admin-nav-link" data-target="admin">
+                        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                        Admin Portal
+                    </a>
+                </li>
+            </ul>
+            <div class="nav-utilities">
+                <button class="btn btn-xs btn-outline nav-btn" id="btn-toggle-mobile">Simulate Mobile View</button>
+                <button class="btn btn-xs btn-outline nav-btn" id="btn-reset-demo-data">Reset Data</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Wrapper -->
+    <main class="app-main-content">
+        
+        <!-- PAGE 1: DASHBOARD -->
+        <section id="page-dashboard" class="page-section active">
+            <div class="section-header">
+                <h2>Operations Status Dashboard</h2>
+                <p class="section-description">Real-time status of JFK Operations Coordinator issues, proposals, and active votes.</p>
+            </div>
+
+            <!-- Stats Dashboard Grid -->
+            <div class="stats-grid" id="stats-summary-grid">
+                <!-- Dynamic Content Loaded by app.js -->
+            </div>
+
+            <!-- Dashboard Content Layout (Sidebar & Main Area) -->
+            <div class="dashboard-layout">
+                <div class="dashboard-main">
+                    <!-- Active Votes Cards -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Active Department Votes</h3>
+                            <span class="badge badge-accent animate-pulse" id="active-votes-count-badge">0 Active</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="active-polls-list" id="dashboard-active-polls">
+                                <!-- Dynamic List of Polls -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Issues List -->
+                    <div class="card mt-4">
+                        <div class="card-header header-with-action">
+                            <h3 class="card-title">Recent Issue Requests</h3>
+                            <button class="btn btn-sm btn-primary" onclick="switchTab('open-issues')">View All Issues</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>IR #</th>
+                                            <th>Title</th>
+                                            <th>Category</th>
+                                            <th>Priority</th>
+                                            <th>Submitted</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dashboard-recent-issues">
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-sidebar">
+                    <!-- Upcoming Follow Ups / Target Dates -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title">Upcoming Follow-Ups</h3>
+                        </div>
+                        <div class="card-body">
+                            <ul class="followup-list" id="dashboard-followups">
+                                <!-- Dynamic list -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- QR Code Quick Entry Helper -->
+                    <div class="card qr-quick-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Mobile Access & QR Codes</h3>
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="qr-description mb-3">Scan below to quickly access forms on your mobile device during your shift.</p>
+                            <div class="qr-code-row">
+                                <div class="qr-item">
+                                    <div class="qr-placeholder" id="qr-submit">
+                                        <!-- Generated SVG QR Code -->
+                                    </div>
+                                    <span class="qr-label">Submit Issue</span>
+                                </div>
+                                <div class="qr-item">
+                                    <div class="qr-placeholder" id="qr-vote">
+                                        <!-- Generated SVG QR Code -->
+                                    </div>
+                                    <span class="qr-label">Active Vote</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 2: SUBMIT ISSUE -->
+        <section id="page-submit-issue" class="page-section">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2>JFK OPS ISSUE REQUEST</h2>
+                    <p>Submit workplace issues, process bottlenecks, or improvement proposals directly to your AVC representatives.</p>
+                </div>
+                
+                <form id="issue-request-form" class="aviation-form">
+                    <!-- Crewmember Info Section -->
+                    <fieldset class="form-section">
+                        <legend>1. Crewmember Information</legend>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="submitter-name">Crewmember Name <span class="required">*</span></label>
+                                <input type="text" id="submitter-name" required placeholder="e.g. John Doe">
+                            </div>
+                            <div class="form-grid-inner">
+                                <div class="form-group">
+                                    <label for="submitter-id">Crewmember ID <span class="required">*</span></label>
+                                    <input type="text" id="submitter-id" required placeholder="e.g. CM12345" pattern="^[a-zA-Z0-9\-]+$">
+                                </div>
+                                <div class="form-group">
+                                    <label for="submitter-shift">Shift (If Applicable)</label>
+                                    <select id="submitter-shift">
+                                        <option value="">-- Select Shift --</option>
+                                        <option value="AM">AM Shift</option>
+                                        <option value="PM">PM Shift</option>
+                                        <option value="Mid">Mid Shift</option>
+                                        <option value="Relief">Relief Shift</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Request Details Section -->
+                    <fieldset class="form-section">
+                        <legend>2. Request Information</legend>
+                        
+                        <div class="form-grid-2col">
+                            <div class="form-group">
+                                <label for="issue-category">Issue Category <span class="required">*</span></label>
+                                <select id="issue-category" required>
+                                    <option value="">-- Choose Category --</option>
+                                    <option value="Compensation">Compensation</option>
+                                    <option value="Training">Training</option>
+                                    <option value="Policy / Procedure">Policy / Procedure</option>
+                                    <option value="Facilities">Facilities</option>
+                                    <option value="Scheduling">Scheduling</option>
+                                    <option value="Staffing">Staffing</option>
+                                    <option value="Communication">Communication</option>
+                                    <option value="Technology / Systems">Technology / Systems</option>
+                                    <option value="Workplace Quality">Workplace Quality</option>
+                                    <option value="Operational Process">Operational Process</option>
+                                    <option value="AO / GO / OPS Coordination">AO / GO / OPS Coordination</option>
+                                    <option value="IAT">IAT</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="issue-priority">Priority Level <span class="required">*</span></label>
+                                <select id="issue-priority" required>
+                                    <option value="Low">Low (Minor Quality of Life / Tweaks)</option>
+                                    <option value="Medium" selected>Medium (Standard Operational Concern)</option>
+                                    <option value="High">High (Direct Impact on Coordinator Tasks)</option>
+                                    <option value="Urgent">Urgent (Safety / Critical Operation Block)</option>
+                                </select>
+                                <small class="form-hint-text">Note: Selecting Urgent highlights the issue but does not guarantee immediate action.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="issue-title">Issue Title <span class="required">*</span></label>
+                            <input type="text" id="issue-title" required placeholder="Short, descriptive title of the concern">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="issue-description">Describe the Issue <span class="required">*</span></label>
+                            <textarea id="issue-description" required rows="4" placeholder="What is currently happening? Describe the situation in detail..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="issue-impact">Why Does This Matter? <span class="required">*</span></label>
+                            <textarea id="issue-impact" required rows="3" placeholder="How does this affect crewmembers, customers, safety, efficiency, or the operation?"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="issue-examples">Examples / Supporting Information</label>
+                            <textarea id="issue-examples" rows="2" placeholder="Provide dates, flights, recurring scenarios, or other useful context if available..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="issue-solution">Proposed Solution <span class="required">*</span></label>
+                            <textarea id="issue-solution" required rows="3" placeholder="What change would you recommend to resolve this?"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Should This Be Considered for a Department Vote?</label>
+                            <div class="radio-group-row">
+                                <label class="radio-label">
+                                    <input type="radio" name="vote-consideration" value="Yes" checked>
+                                    <span>Yes</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="vote-consideration" value="No">
+                                    <span>No</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="vote-consideration" value="Unsure / AVC Decide">
+                                    <span>Unsure / AVC Decide</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="issue-comments">Additional Comments (Optional)</label>
+                            <textarea id="issue-comments" rows="2" placeholder="Any secondary details you'd like to share..."></textarea>
+                        </div>
+                    </fieldset>
+
+                    <!-- Confirmation & Submit -->
+                    <div class="form-footer-action">
+                        <label class="checkbox-label mb-4">
+                            <input type="checkbox" id="good-faith-confirm" required>
+                            <span>I confirm this request is being submitted in good faith for consideration and improvement of the JFK OPS workplace or operation. <span class="required">*</span></span>
+                        </label>
+                        <button type="submit" class="btn btn-lg btn-primary btn-block">SUBMIT ISSUE</button>
+                    </div>
+                </form>
+
+                <!-- Success Screen Overlay -->
+                <div class="success-screen hidden" id="submission-success-screen">
+                    <div class="success-card">
+                        <span class="success-icon">✓</span>
+                        <h2>Submission Successful</h2>
+                        <p class="success-message">Your Issue Request has been submitted successfully.</p>
+                        
+                        <div class="ir-number-box">
+                            <span class="ir-label">ASSIGNED REQUEST NUMBER:</span>
+                            <span class="ir-id" id="success-ir-number">IR-2026-001</span>
+                        </div>
+                        
+                        <p class="success-next-steps">The AVC Committee has been notified and will review your submission shortly. You can track its progress on the <strong>Open Issues</strong> board.</p>
+                        
+                        <div class="success-actions">
+                            <button class="btn btn-primary" onclick="resetSubmitFormAndNavigate('open-issues')">Track Issue</button>
+                            <button class="btn btn-outline" onclick="resetSubmitFormAndNavigate('submit-issue')">Submit Another Issue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 3: OPEN ISSUES -->
+        <section id="page-open-issues" class="page-section">
+            <div class="section-header-filters">
+                <div>
+                    <h2>Department Issue Tracker</h2>
+                    <p class="section-description">Follow the progress of all submitted Coordinator requests as they are reviewed and resolved.</p>
+                </div>
+            </div>
+
+            <!-- Filters Toolbar -->
+            <div class="toolbar-card card mb-4">
+                <div class="toolbar-grid">
+                    <div class="search-box">
+                        <input type="text" id="issues-search" placeholder="Search by title, description, or IR number...">
+                        <span class="search-clear-icon" id="btn-clear-search">×</span>
+                    </div>
+                    
+                    <div class="filter-controls-group">
+                        <div class="filter-item">
+                            <label for="filter-category">Category</label>
+                            <select id="filter-category">
+                                <option value="all">All Categories</option>
+                                <option value="Compensation">Compensation</option>
+                                <option value="Training">Training</option>
+                                <option value="Policy / Procedure">Policy / Procedure</option>
+                                <option value="Facilities">Facilities</option>
+                                <option value="Scheduling">Scheduling</option>
+                                <option value="Staffing">Staffing</option>
+                                <option value="Communication">Communication</option>
+                                <option value="Technology / Systems">Technology / Systems</option>
+                                <option value="Workplace Quality">Workplace Quality</option>
+                                <option value="Operational Process">Operational Process</option>
+                                <option value="AO / GO / OPS Coordination">AO / GO / OPS Coordination</option>
+                                <option value="IAT">IAT</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-item">
+                            <label for="filter-status">Status</label>
+                            <select id="filter-status">
+                                <option value="all">All Statuses</option>
+                                <option value="SUBMITTED">SUBMITTED</option>
+                                <option value="UNDER REVIEW">UNDER REVIEW</option>
+                                <option value="NEEDS INFORMATION">NEEDS INFORMATION</option>
+                                <option value="VOTING">VOTING</option>
+                                <option value="SUBMITTED TO LEADERSHIP">SUBMITTED TO LEADERSHIP</option>
+                                <option value="APPROVED">APPROVED</option>
+                                <option value="IMPLEMENTING">IMPLEMENTING</option>
+                                <option value="COMPLETED">COMPLETED</option>
+                                <option value="DENIED">DENIED</option>
+                                <option value="BLOCKED">BLOCKED</option>
+                                <option value="ARCHIVED">ARCHIVED</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-item">
+                            <label for="filter-priority">Priority</label>
+                            <select id="filter-priority">
+                                <option value="all">All Priorities</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Issues Grid -->
+            <div class="issues-board-grid" id="issues-list-container">
+                <!-- Dynamic cards loaded by app.js -->
+            </div>
+            
+            <div class="no-results hidden" id="no-issues-found-message">
+                <span class="no-results-icon">📭</span>
+                <h3>No issues match your filter criteria</h3>
+                <p>Try resetting filters or searching for another term.</p>
+                <button class="btn btn-outline" id="btn-reset-issues-filters">Reset All Filters</button>
+            </div>
+        </section>
+
+        <!-- PAGE 4: VOTE -->
+        <section id="page-vote" class="page-section">
+            <div class="section-header">
+                <h2>OPS COORDINATOR VOTING</h2>
+                <p class="section-description">Understanding coordinator preference to shape AVC negotiations and proposals. Votes are confidential.</p>
+            </div>
+
+            <!-- Active Polls List -->
+            <div class="polls-grid" id="polls-list-container">
+                <!-- Dynamic poll cards -->
+            </div>
+            
+            <div class="no-results hidden" id="no-polls-found-message">
+                <span class="no-results-icon">🗳️</span>
+                <h3>No Active Coordinator Polls</h3>
+                <p>There are currently no active votes open for the department. Check back when AVC creates a vote.</p>
+            </div>
+        </section>
+
+        <!-- PAGE 5: RESULTS -->
+        <section id="page-results" class="page-section">
+            <div class="section-header">
+                <h2>Coordinator Voting Results</h2>
+                <p class="section-description">Public tally of participation and voter choices. Individual identities and employee IDs are kept confidential.</p>
+            </div>
+
+            <div class="results-dashboard-grid" id="results-dashboard-container">
+                <!-- Dynamic charts -->
+            </div>
+        </section>
+
+        <!-- PAGE 6: QUARTERLY UPDATES -->
+        <section id="page-updates" class="page-section">
+            <div class="section-header-actions mb-4">
+                <div>
+                    <h2>JFK OPS AVC UPDATE</h2>
+                    <p class="section-description">Quarterly transparency summaries. Closing the loop on your submitted issues.</p>
+                </div>
+                <div class="update-selectors-row no-print">
+                    <select id="update-quarter-select" class="theme-selector mr-2">
+                        <option value="Q1-2026">Q1 2026 Report (Current)</option>
+                        <option value="Q4-2025">Q4 2025 Report</option>
+                    </select>
+                    <button class="btn btn-outline btn-print" onclick="window.print()">
+                        <svg viewBox="0 0 24 24" class="btn-icon"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+                        Print/Export PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quarterly Report Sheet Container -->
+            <div class="report-sheet card" id="quarterly-report-content">
+                <!-- Loaded dynamically by app.js -->
+            </div>
+        </section>
+
+        <!-- PAGE 7: ADMIN PORTAL (AVC Admin Only) -->
+        <section id="page-admin" class="page-section">
+            <div class="admin-locked-screen" id="admin-restricted-overlay">
+                <div class="locked-card">
+                    <span class="locked-icon">🔒</span>
+                    <h2>Restricted Access Area</h2>
+                    <p>Only authorized AVC Committee Administrators are permitted to view and manage request statuses, voter registration logs, and custom polls.</p>
+                    <div class="locked-actions">
+                        <p class="mb-3">To preview the Admin Dashboard, switch the <strong>Access Level</strong> to <strong>AVC Admin</strong> in the top header.</p>
+                        <button class="btn btn-primary" onclick="simulateAdminAccess()">Switch to AVC Admin Role</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-layout-container" id="admin-dashboard-layout">
+                <!-- Admin Navigation / Tabs -->
+                <div class="admin-tabs">
+                    <button class="admin-tab-btn active" data-admin-tab="admin-issues">Issue Requests Master Table</button>
+                    <button class="admin-tab-btn" data-admin-tab="admin-polls">Poll & Vote Builder</button>
+                    <button class="admin-tab-btn" data-admin-tab="admin-voters">Confidential Voter Log</button>
+                </div>
+
+                <!-- Admin Tab 1: Issues Management -->
+                <div class="admin-tab-content active" id="admin-tab-admin-issues">
+                    <div class="table-card card">
+                        <div class="card-header header-with-filters">
+                            <h3 class="card-title">All Submitted Issue Requests</h3>
+                            <div class="admin-filter-bar">
+                                <input type="text" id="admin-issues-search" placeholder="Search IR#, title, crewmember...">
+                                <select id="admin-filter-category">
+                                    <option value="all">All Categories</option>
+                                    <option value="Compensation">Compensation</option>
+                                    <option value="Training">Training</option>
+                                    <option value="Policy / Procedure">Policy / Procedure</option>
+                                    <option value="Facilities">Facilities</option>
+                                    <option value="Scheduling">Scheduling</option>
+                                    <option value="Staffing">Staffing</option>
+                                    <option value="Communication">Communication</option>
+                                    <option value="Technology / Systems">Technology / Systems</option>
+                                    <option value="Workplace Quality">Workplace Quality</option>
+                                    <option value="Operational Process">Operational Process</option>
+                                    <option value="AO / GO / OPS Coordination">AO / GO / OPS Coordination</option>
+                                    <option value="IAT">IAT</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <select id="admin-filter-status">
+                                    <option value="all">All Statuses</option>
+                                    <option value="SUBMITTED">SUBMITTED</option>
+                                    <option value="UNDER REVIEW">UNDER REVIEW</option>
+                                    <option value="NEEDS INFORMATION">NEEDS INFORMATION</option>
+                                    <option value="VOTING">VOTING</option>
+                                    <option value="SUBMITTED TO LEADERSHIP">SUBMITTED TO LEADERSHIP</option>
+                                    <option value="APPROVED">APPROVED</option>
+                                    <option value="IMPLEMENTING">IMPLEMENTING</option>
+                                    <option value="COMPLETED">COMPLETED</option>
+                                    <option value="DENIED">DENIED</option>
+                                    <option value="BLOCKED">BLOCKED</option>
+                                    <option value="ARCHIVED">ARCHIVED</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>IR #</th>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Submitter</th>
+                                        <th>CM ID</th>
+                                        <th>Priority</th>
+                                        <th>Status</th>
+                                        <th>Follow-Up</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-master-issues-rows">
+                                    <!-- Dynamic rows loaded from localStorage -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Tab 2: Polls & Vote Builder -->
+                <div class="admin-tab-content" id="admin-tab-admin-polls">
+                    <div class="admin-polls-layout">
+                        <!-- Create Poll Form -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Create Dynamic Coordinator Poll</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="admin-create-poll-form" class="aviation-form">
+                                    <div class="form-group">
+                                        <label for="poll-connect-ir">Connect to Issue Request (Optional)</label>
+                                        <select id="poll-connect-ir">
+                                            <option value="">-- Do Not Connect to IR --</option>
+                                            <!-- Dynamic IR list -->
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="poll-title">Proposal / Poll Title <span class="required">*</span></label>
+                                        <input type="text" id="poll-title" required placeholder="e.g. Support Coordinator Role During Peak Operations">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="poll-description">Background & Context <span class="required">*</span></label>
+                                        <textarea id="poll-description" required rows="3" placeholder="Provide background and explain why AVC is seeking coordinator feedback..."></textarea>
+                                    </div>
+
+                                    <!-- Option 1 -->
+                                    <div class="form-group-option-border">
+                                        <div class="form-group">
+                                            <label for="poll-opt1-title">Option 1 Label <span class="required">*</span></label>
+                                            <input type="text" id="poll-opt1-title" required placeholder="e.g. Dedicated Support Coordinator">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="poll-opt1-desc">Option 1 Brief Explanation <span class="required">*</span></label>
+                                            <input type="text" id="poll-opt1-desc" required placeholder="e.g. Establish a full-time coordinator on shift.">
+                                        </div>
+                                    </div>
+
+                                    <!-- Option 2 -->
+                                    <div class="form-group-option-border mt-3">
+                                        <div class="form-group">
+                                            <label for="poll-opt2-title">Option 2 Label <span class="required">*</span></label>
+                                            <input type="text" id="poll-opt2-title" required placeholder="e.g. Peak-Hours Only Support">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="poll-opt2-desc">Option 2 Brief Explanation <span class="required">*</span></label>
+                                            <input type="text" id="poll-opt2-desc" required placeholder="e.g. Assign support only during peak departure blocks.">
+                                        </div>
+                                    </div>
+
+                                    <!-- Option 3 -->
+                                    <div class="form-group-option-border mt-3">
+                                        <div class="form-group">
+                                            <label for="poll-opt3-title">Option 3 Label <span class="required">*</span></label>
+                                            <input type="text" id="poll-opt3-title" required placeholder="e.g. Maintain Current Process">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="poll-opt3-desc">Option 3 Brief Explanation <span class="required">*</span></label>
+                                            <input type="text" id="poll-opt3-desc" required placeholder="e.g. Keep existing rotation without dedicated helper.">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-grid-inner mt-4">
+                                        <div class="form-group">
+                                            <label for="poll-open-date">Opening Date</label>
+                                            <input type="date" id="poll-open-date" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="poll-close-date">Closing Date</label>
+                                            <input type="date" id="poll-close-date" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="poll-eligible-voters">Total Eligible Voters (For Participation Tally)</label>
+                                        <input type="number" id="poll-eligible-voters" value="68" placeholder="e.g. 68">
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary btn-block mt-3">CREATE & LAUNCH POLL</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Existing Polls Master Management -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Manage Active & Historical Polls</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="admin-polls-list" id="admin-polls-list-rows">
+                                    <!-- Dynamic poll management list -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Tab 3: Confidential Voter Verification Log -->
+                <div class="admin-tab-content" id="admin-tab-admin-voters">
+                    <div class="card warning-card mb-4">
+                        <div class="warning-header">
+                            <span class="warning-icon">⚠</span>
+                            <h4>CONFIDENTIAL — AVC COMMITTEE USE ONLY</h4>
+                        </div>
+                        <p class="warning-text">This list logs individual vote submissions to prevent duplicates and verify voter eligibility. In compliance with crew privacy guidelines, do NOT export, display, or share individual voting details with managers or public channels. Public results are aggregate only.</p>
+                    </div>
+
+                    <div class="card table-card">
+                        <div class="card-header header-with-filters">
+                            <h3 class="card-title">Confidential Voter Registry</h3>
+                            <div class="admin-filter-bar">
+                                <input type="text" id="admin-voters-search" placeholder="Search voter name, ID, or poll...">
+                                <button class="btn btn-outline" id="btn-export-voters">Export to CSV</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Crewmember</th>
+                                        <th>Employee ID</th>
+                                        <th>Poll / Proposal</th>
+                                        <th>Selected Vote Option</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-confidential-voters-rows">
+                                    <!-- Dynamic rows loaded from localStorage -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL 1: VIEW ISSUE DETAIL (All Roles) -->
+    <div class="modal" id="modal-view-issue">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="modal-view-ir-number">IR-2026-001</h3>
+                    <button class="close-modal" onclick="closeModal('modal-view-issue')">&times;</button>
+                </div>
+                <div class="modal-body" id="modal-view-content">
+                    <!-- Loaded dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline" onclick="closeModal('modal-view-issue')">Close View</button>
+                    <button class="btn btn-primary admin-only-button hidden" id="modal-view-btn-manage">Manage / Edit Request</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: MANAGE ISSUE (Admin Only) -->
+    <div class="modal" id="modal-manage-issue">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="modal-manage-ir-number">Manage Request IR-2026-001</h3>
+                    <button class="close-modal" onclick="closeModal('modal-manage-issue')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="admin-manage-issue-form" class="aviation-form">
+                        <input type="hidden" id="manage-issue-idx">
+                        
+                        <div class="form-grid-2col">
+                            <div class="form-group">
+                                <label for="manage-status">Operational Status <span class="required">*</span></label>
+                                <select id="manage-status" required>
+                                    <option value="SUBMITTED">SUBMITTED (New)</option>
+                                    <option value="UNDER REVIEW">UNDER REVIEW</option>
+                                    <option value="NEEDS INFORMATION">NEEDS INFORMATION</option>
+                                    <option value="VOTING">VOTING</option>
+                                    <option value="SUBMITTED TO LEADERSHIP">SUBMITTED TO LEADERSHIP</option>
+                                    <option value="APPROVED">APPROVED</option>
+                                    <option value="IMPLEMENTING">IMPLEMENTING</option>
+                                    <option value="COMPLETED">COMPLETED</option>
+                                    <option value="DENIED">DENIED</option>
+                                    <option value="BLOCKED">BLOCKED</option>
+                                    <option value="ARCHIVED">ARCHIVED</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="manage-priority">Override Priority</label>
+                                <select id="manage-priority">
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                    <option value="Urgent">Urgent</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2col mt-2">
+                            <div class="form-group">
+                                <label for="manage-owner">Assign Owner / POC (e.g. AVC Rep)</label>
+                                <input type="text" id="manage-owner" placeholder="e.g. Dave Jones, AVC Rep">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="manage-followup-date">Target Follow-Up Date</label>
+                                <input type="date" id="manage-followup-date">
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label for="manage-next-action">Next Tactical Action</label>
+                            <input type="text" id="manage-next-action" placeholder="e.g. Schedule meeting with operations director">
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label for="manage-leadership-response">Leadership Formal Response</label>
+                            <textarea id="manage-leadership-response" rows="3" placeholder="Provide leadership's status feedback or formal rejection/approval notes..."></textarea>
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label for="manage-internal-notes">Internal AVC Committee Notes (Hidden from Crewmembers)</label>
+                            <textarea id="manage-internal-notes" rows="3" placeholder="Reviewer notes, private voting alignment, strategy details..."></textarea>
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label for="manage-decision">Final Decision Summary (If Closed)</label>
+                            <textarea id="manage-decision" rows="2" placeholder="Record the final outcome of the issue for records..."></textarea>
+                        </div>
+
+                        <div class="form-footer-action mt-4">
+                            <button type="submit" class="btn btn-primary btn-block">SAVE UPDATE</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: VOTING BALLOT (Crewmember Role) -->
+    <div class="modal" id="modal-submit-vote">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">SUBMIT CONFIDENTIAL VOTE</h3>
+                    <button class="close-modal" onclick="closeModal('modal-submit-vote')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="ballot-poll-details mb-4">
+                        <h4 id="ballot-poll-title">Support Coordinator Role During Peak Operations</h4>
+                        <p class="text-muted" id="ballot-poll-desc">Explanation...</p>
+                    </div>
+
+                    <form id="crewmember-vote-form" class="aviation-form">
+                        <input type="hidden" id="ballot-poll-id">
+                        
+                        <!-- Voter credentials -->
+                        <div class="voter-auth-box mb-4">
+                            <h5 class="voter-auth-title">Voter Verification</h5>
+                            <p class="voter-auth-description mb-3">Voter identity is verified to prevent duplicates but kept strictly private in public tallies.</p>
+                            <div class="form-grid-inner">
+                                <div class="form-group">
+                                    <label for="vote-cm-name">Crewmember Name <span class="required">*</span></label>
+                                    <input type="text" id="vote-cm-name" required placeholder="Full Name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="vote-cm-id">Crewmember ID <span class="required">*</span></label>
+                                    <input type="text" id="vote-cm-id" required placeholder="e.g. CM12345">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ballot choice -->
+                        <div class="ballot-choices-area">
+                            <label class="ballot-choice-header">Choose ONE option <span class="required">*</span></label>
+                            
+                            <div class="ballot-option-card">
+                                <input type="radio" name="ballot-option" id="opt-1-radio" value="Option 1" required>
+                                <label for="opt-1-radio">
+                                    <span class="ballot-opt-title" id="ballot-opt1-title">Option 1</span>
+                                    <span class="ballot-opt-desc" id="ballot-opt1-desc">Description of option 1...</span>
+                                </label>
+                            </div>
+
+                            <div class="ballot-option-card mt-2">
+                                <input type="radio" name="ballot-option" id="opt-2-radio" value="Option 2">
+                                <label for="opt-2-radio">
+                                    <span class="ballot-opt-title" id="ballot-opt2-title">Option 2</span>
+                                    <span class="ballot-opt-desc" id="ballot-opt2-desc">Description of option 2...</span>
+                                </label>
+                            </div>
+
+                            <div class="ballot-option-card mt-2">
+                                <input type="radio" name="ballot-option" id="opt-3-radio" value="Option 3">
+                                <label for="opt-3-radio">
+                                    <span class="ballot-opt-title" id="ballot-opt3-title">Option 3</span>
+                                    <span class="ballot-opt-desc" id="ballot-opt3-desc">Description of option 3...</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Optional Comment -->
+                        <div class="form-group mt-4">
+                            <label for="vote-comment">Optional Comment</label>
+                            <textarea id="vote-comment" rows="2" placeholder="Anything you'd like AVC to consider?"></textarea>
+                        </div>
+
+                        <div class="form-footer-action mt-4">
+                            <div class="alert alert-danger hidden" id="vote-error-message">
+                                A vote has already been submitted for this poll using this Crewmember ID.
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block btn-lg">SUBMIT VOTE</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: ADMIN PASSWORD VERIFICATION -->
+    <div class="modal" id="modal-admin-auth">
+        <div class="modal-dialog" style="max-width: 400px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">AVC ADMIN AUTHENTICATION</h3>
+                    <button class="close-modal" id="btn-close-admin-auth">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3" style="font-size:13.5px;">Authorized AVC representatives only. Enter password to unlock admin management panels.</p>
+                    <form id="admin-auth-form" class="aviation-form">
+                        <div class="form-group">
+                            <label for="admin-password-field">AVC Admin Password</label>
+                            <input type="password" id="admin-password-field" required placeholder="••••••••" style="font-size: 16px; letter-spacing: 2px;">
+                        </div>
+                        <div class="alert alert-danger mt-3 hidden" id="admin-auth-error">
+                            Invalid passcode. Access denied.
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block mt-3">UNLOCK PORTAL</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Entry Point -->
+    <script src="app.js"></script>
+</body>
+</html>
