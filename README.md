@@ -28,6 +28,7 @@ The application supports three distinct visual design directions:
 * **Confidential Voter Registry (AVC Admin Portal)**: A locked voter tracking log to verify ballots and prevent double-voting. Flags duplicate entries in red and allows CSV export for audits.
 * **Quarterly Updates & PDF Exporter**: View dynamic summaries of quarterly results (Q1 2026/Q4 2025). The page features full print styling sheet overrides to output clean, clean A4/Letter PDF reports without sidebar menus or page backgrounds.
 * **Mobile Simulation Overlay**: Instantly test the crewmember view with a responsive frame overlay that converts the main navigation into a mobile-friendly bottom tab bar.
+* **Complete Database Reset**: A **"Reset Database"** button in the top-right header controls allows admins to wipe out all custom issues, polls, and votes to start the system from a clean slate. Features a dual-confirmation safety prompt to prevent accidental data loss.
 
 ---
 

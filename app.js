@@ -332,12 +332,16 @@ function saveVotesToStorage() {
 }
 
 function resetDemoData() {
-    if (confirm("This will clear all custom issues and votes and restore default mock data. Proceed?")) {
-        localStorage.removeItem('jfk_ops_issues');
-        localStorage.removeItem('jfk_ops_polls');
-        localStorage.removeItem('jfk_ops_votes');
-        loadDataFromStorage();
-        alert("Prototype data has been reset.");
+    const doubleConfirm = confirm(
+        "⚠️ DANGER: This will permanently WIPE OUT all database data, including all issues, voting polls, coordinator ballots, and progress history. You will start with a completely clean, empty application.\n\nAre you absolutely sure you want to proceed with this wipe?"
+    );
+    if (doubleConfirm) {
+        // Clear storage keys and set to empty arrays so it starts from scratch
+        localStorage.setItem('jfk_ops_issues', JSON.stringify([]));
+        localStorage.setItem('jfk_ops_polls', JSON.stringify([]));
+        localStorage.setItem('jfk_ops_votes', JSON.stringify([]));
+        
+        alert("System database has been wiped clean. Starting fresh!");
         location.reload();
     }
 }

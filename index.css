@@ -294,29 +294,26 @@ a:hover {
     align-items: center;
     gap: 20px;
 }
-.nav-utilities {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.nav-btn {
-    border-color: rgba(255,255,255,0.3) !important;
-    color: rgba(255,255,255,0.85) !important;
-    font-size: 11px !important;
-    padding: 4px 10px !important;
-    border-radius: 4px;
-}
-.nav-btn:hover {
-    background-color: rgba(255,255,255,0.1) !important;
+.header-btn {
+    border-color: rgba(255,255,255,0.4) !important;
     color: #ffffff !important;
+    font-size: 11px !important;
+    padding: 6px 12px !important;
+    border-radius: 4px;
+    background-color: transparent;
+    cursor: pointer;
+    border: 1px solid;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
-:root[data-theme="version-c"] .nav-btn {
+.header-btn:hover {
+    background-color: rgba(255,255,255,0.1) !important;
+}
+:root[data-theme="version-c"] .header-btn {
     border-color: var(--border-color) !important;
-    color: var(--text-muted) !important;
-}
-:root[data-theme="version-c"] .nav-btn:hover {
-    background-color: var(--bg-secondary) !important;
     color: var(--primary-color) !important;
+}
+:root[data-theme="version-c"] .header-btn:hover {
+    background-color: var(--bg-secondary) !important;
 }
 .control-group {
     display: flex;
@@ -1944,7 +1941,7 @@ body.mobile-view .demo-utility-bar {
 body.mobile-view .app-header {
     padding: 12px 16px;
 }
-body.mobile-view .nav-utilities {
+body.mobile-view .header-btn {
     display: none;
 }
 body.mobile-view .brand {
