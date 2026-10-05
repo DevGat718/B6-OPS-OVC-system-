@@ -2,7 +2,10 @@
 <html lang="en" data-theme="version-a">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#00205b">
     <title>JFK OPS - AVC Issue Request & Voting System</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,8 +31,6 @@
             
             <!-- Right controls -->
             <div class="header-controls">
-                <button class="btn btn-sm btn-outline header-btn" id="btn-reset-demo-data" style="margin-right: 12px;">Reset Database</button>
-                
                 <div class="control-group">
                     <label for="role-select">Access Level:</label>
                     <select id="role-select" class="role-selector">
@@ -173,37 +174,13 @@
                         </div>
                     </div>
 
-                    <!-- QR Code Quick Entry Helper -->
-                    <div class="card qr-quick-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Mobile Access & QR Codes</h3>
-                        </div>
-                        <div class="card-body text-center">
-                            <p class="qr-description mb-3">Scan below to quickly access forms on your mobile device during your shift.</p>
-                            <div class="qr-code-row">
-                                <div class="qr-item">
-                                    <div class="qr-placeholder" id="qr-submit">
-                                        <!-- Generated SVG QR Code -->
-                                    </div>
-                                    <span class="qr-label">Submit Issue</span>
-                                </div>
-                                <div class="qr-item">
-                                    <div class="qr-placeholder" id="qr-vote">
-                                        <!-- Generated SVG QR Code -->
-                                    </div>
-                                    <span class="qr-label">Active Vote</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </section>
 
         <!-- PAGE 2: SUBMIT ISSUE -->
         <section id="page-submit-issue" class="page-section">
-            <div class="submit-layout">
-                <div class="form-container">
+            <div class="form-container">
                 <div class="form-header">
                     <h2>JFK OPS ISSUE REQUEST</h2>
                     <p>Submit workplace issues, process bottlenecks, or improvement proposals directly to your AVC representatives.</p>
@@ -353,23 +330,7 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="submit-sidebar">
-                <div class="card qr-card text-center" style="padding: 20px;">
-                    <div class="card-header" style="background:transparent; border-bottom:none; padding:10px 0;">
-                        <h3 class="card-title" style="font-size:16px;">Scan to Share Feedback</h3>
-                    </div>
-                    <div class="card-body" style="padding:10px 0;">
-                        <p class="text-muted mb-3" style="font-size:12.5px; line-height:1.4;">Submit feedback, safety issues, and ideas directly from your mobile device while working on the terminal floor.</p>
-                        <div class="qr-container" style="background-color:#ffffff; padding:12px; border-radius:8px; display:inline-block; border:1px solid var(--border-color); margin: 10px auto;">
-                            <img id="qr-submit-issue" src="" alt="Submit Issue QR Code" class="qr-image" style="width: 140px; height: 140px; display:block;" onerror="this.parentElement.style.display='none';">
-                        </div>
-                        <span class="qr-url-text mt-2" id="url-text-submit-issue" style="display:block; font-size:11px; color:var(--text-muted); font-family:var(--font-mono); word-break:break-all; background-color:var(--bg-secondary); padding:4px 8px; border-radius:4px;">Loading...</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+        </section>
 
         <!-- PAGE 3: OPEN ISSUES -->
         <section id="page-open-issues" class="page-section">
@@ -456,8 +417,6 @@
 
         <!-- PAGE 4: VOTE -->
         <section id="page-vote" class="page-section">
-            <div class="submit-layout">
-                <div class="submit-main">
                     <div class="section-header">
                         <h2>OPS COORDINATOR VOTING</h2>
                         <p class="section-description">Understanding coordinator preference to shape AVC negotiations and proposals. Votes are confidential.</p>
@@ -473,23 +432,6 @@
                         <h3>No Active Coordinator Polls</h3>
                         <p>There are currently no active votes open for the department. Check back when AVC creates a vote.</p>
                     </div>
-                </div>
-                
-                <div class="submit-sidebar">
-                    <div class="card qr-card text-center" style="padding: 20px;">
-                        <div class="card-header" style="background:transparent; border-bottom:none; padding:10px 0;">
-                            <h3 class="card-title" style="font-size:16px;">Scan to Vote on Mobile</h3>
-                        </div>
-                        <div class="card-body" style="padding:10px 0;">
-                            <p class="text-muted mb-3" style="font-size:12.5px; line-height:1.4;">Scan this QR code to quickly load active department votes and cast your ballot from your phone in the crew lounge.</p>
-                            <div class="qr-container" style="background-color:#ffffff; padding:12px; border-radius:8px; display:inline-block; border:1px solid var(--border-color); margin: 10px auto;">
-                                <img id="qr-vote" src="" alt="Active Votes QR Code" class="qr-image" style="width: 140px; height: 140px; display:block;" onerror="this.parentElement.style.display='none';">
-                            </div>
-                            <span class="qr-url-text mt-2" id="url-text-vote" style="display:block; font-size:11px; color:var(--text-muted); font-family:var(--font-mono); word-break:break-all; background-color:var(--bg-secondary); padding:4px 8px; border-radius:4px;">Loading...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- PAGE 5: RESULTS -->
@@ -558,7 +500,7 @@
                     <button class="admin-tab-btn active" data-admin-tab="admin-issues">Issue Requests Master Table</button>
                     <button class="admin-tab-btn" data-admin-tab="admin-polls">Poll & Vote Builder</button>
                     <button class="admin-tab-btn" data-admin-tab="admin-voters">Confidential Voter Log</button>
-                    <button class="admin-tab-btn" data-admin-tab="admin-outreach">Outreach QR Flyer</button>
+                    <button class="admin-tab-btn" data-admin-tab="admin-settings">System Maintenance</button>
                 </div>
 
                 <!-- Admin Tab 1: Issues Management -->
@@ -761,37 +703,25 @@
                     </div>
                 </div>
 
-                <!-- Admin Tab 4: Outreach Flyer -->
-                <div class="admin-tab-content" id="admin-tab-admin-outreach">
+                <!-- Admin Tab 4: System Maintenance -->
+                <div class="admin-tab-content" id="admin-tab-admin-settings">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Voter Engagement & Terminal Signage</h3>
+                            <h3 class="card-title">System Maintenance & Database Controls</h3>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted mb-4">Print and post these flyers in the JFK Ops Crew Room, briefing areas, and break rooms so coordinators can easily access the portal on their mobile devices.</p>
+                            <p class="text-muted mb-4">Manage database state, audit logs, and system initialization settings. Access is restricted to authorized AVC administrators.</p>
                             
-                            <div class="outreach-flyer-grid">
-                                <div class="flyer-card text-center" style="background-color:var(--bg-secondary); padding:24px; border-radius:8px; border:1px solid var(--border-color); text-align:center; margin-bottom:20px;">
-                                    <h4 style="color:#ffffff; margin-top:0; font-size:16px;">1. SUBMIT ISSUES FLYER</h4>
-                                    <p class="text-muted mb-3" style="font-size:12.5px;">Scan to report terminal, gate, or flight deck coordinator issues.</p>
-                                    <div class="qr-container mb-3" style="background-color:#ffffff; padding:16px; border-radius:8px; display:inline-block; border:1px solid var(--border-color);">
-                                        <img id="qr-admin-outreach-submit" src="" alt="Submit Issue QR" class="qr-image" style="width: 160px; height: 160px; display:block;">
-                                    </div>
-                                    <div style="margin-top:10px;">
-                                        <button class="btn btn-outline btn-sm" id="btn-print-flyer-submit">Print Submit Flyer</button>
-                                    </div>
-                                </div>
-                                
-                                <div class="flyer-card text-center" style="background-color:var(--bg-secondary); padding:24px; border-radius:8px; border:1px solid var(--border-color); text-align:center; margin-bottom:20px;">
-                                    <h4 style="color:#ffffff; margin-top:0; font-size:16px;">2. ACTIVE VOTES FLYER</h4>
-                                    <p class="text-muted mb-3" style="font-size:12.5px;">Scan to cast votes on pending coordinator improvements.</p>
-                                    <div class="qr-container mb-3" style="background-color:#ffffff; padding:16px; border-radius:8px; display:inline-block; border:1px solid var(--border-color);">
-                                        <img id="qr-admin-outreach-vote" src="" alt="Active Votes QR" class="qr-image" style="width: 160px; height: 160px; display:block;">
-                                    </div>
-                                    <div style="margin-top:10px;">
-                                        <button class="btn btn-outline btn-sm" id="btn-print-flyer-vote">Print Vote Flyer</button>
-                                    </div>
-                                </div>
+                            <div class="maintenance-box" style="border: 1px solid var(--danger-color); border-radius: var(--border-radius); padding: 22px; background-color: rgba(220, 38, 38, 0.05); max-width: 650px;">
+                                <h4 style="color: var(--danger-color); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                                    <span>⚠️</span> Danger Zone: Reset System Database
+                                </h4>
+                                <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 18px; line-height: 1.5;">
+                                    Resetting the database will permanently wipe all newly submitted coordinator issue requests, custom polls, voter registry entries, and audit logs. The system will start from a clean slate. Requires a verification prompt before confirming.
+                                </p>
+                                <button class="btn btn-danger" id="btn-reset-demo-data">
+                                    Reset Database to Factory Defaults
+                                </button>
                             </div>
                         </div>
                     </div>

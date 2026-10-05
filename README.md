@@ -27,9 +27,10 @@ The application supports three distinct visual design directions:
   * Restricts results to aggregate percentages to maintain **voter confidentiality**.
 * **Confidential Voter Registry (AVC Admin Portal)**: A locked voter tracking log to verify ballots and prevent double-voting. Flags duplicate entries in red and allows CSV export for audits.
 * **Quarterly Updates & PDF Exporter**: View dynamic summaries of quarterly results. On load, the system auto-detects the current date (e.g., August 2026 selects **2026** and **Q3** automatically). Provides separate **Year** and **Quarter** dropdown controls to dynamically load metrics and categorized issues for any period. Features print layout overrides for clean A4 PDF reports.
-* **Mobile Simulation Overlay**: Instantly test the crewmember view with a responsive frame overlay that converts the main navigation into a mobile-friendly bottom tab bar.
-* **Complete Database Reset**: A **"Reset Database"** button in the top-right header controls allows admins to wipe out all custom issues, polls, and votes to start the system from a clean slate. Features a dual-confirmation safety prompt to prevent accidental data loss.
-* **Dynamic QR Codes & Outreach Flyers**: Generates live QR codes linking directly to the **Submit Issue** and **Vote** pages. Includes a printable flyer generator in the Admin Portal for terminal signage.
+* **Mobile Simulation Overlay**: Instantly test the crewmember view via the **Mobile View (Demo Display)** option inside the **Viewing Options** dropdown, which mimics a native-like bottom tab bar navigation.
+* **Complete Database Reset (AVC Admin Portal)**: Tucked securely inside the **System Maintenance** tab of the password-protected Admin Portal, allowing authorized administrators to wipe out custom issues, polls, and votes to start from a clean slate with a safety confirmation prompt.
+
+
 
 ---
 

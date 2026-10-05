@@ -420,13 +420,13 @@ function loadDashboard() {
     sortedIssues.forEach(ir => {
         const dateStr = new Date(ir.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         recentIssuesHtml += `
-            <tr style="cursor: pointer;" onclick="openViewIssueModal('${ir.irNumber}')">
-                <td><strong class="text-muted font-mono" style="font-family:var(--font-mono);">${ir.irNumber}</strong></td>
-                <td>${ir.title}</td>
-                <td><span class="text-muted" style="font-size:13px; font-weight:500;">${ir.category}</span></td>
-                <td><span class="badge badge-priority-${ir.priority.toLowerCase()}">${ir.priority}</span></td>
-                <td style="font-family:var(--font-mono); font-size:12px;">${dateStr}</td>
-                <td><span class="badge badge-status-${ir.status.toLowerCase().replace(/ /g, '-')}">${ir.status}</span></td>
+            <tr class="mobile-card-row" style="cursor: pointer;" onclick="openViewIssueModal('${ir.irNumber}')">
+                <td class="cell-ir"><strong class="text-muted font-mono" style="font-family:var(--font-mono);">${ir.irNumber}</strong></td>
+                <td class="cell-title">${ir.title}</td>
+                <td class="cell-cat"><span class="text-muted" style="font-size:13px; font-weight:500;">${ir.category}</span></td>
+                <td class="cell-priority"><span class="badge badge-priority-${ir.priority.toLowerCase()}">${ir.priority}</span></td>
+                <td class="cell-date" style="font-family:var(--font-mono); font-size:12px;">${dateStr}</td>
+                <td class="cell-status"><span class="badge badge-status-${ir.status.toLowerCase().replace(/ /g, '-')}">${ir.status}</span></td>
             </tr>
         `;
     });
@@ -457,47 +457,6 @@ function loadDashboard() {
     }
     document.getElementById('dashboard-followups').innerHTML = followupsHtml;
 
-    // 5. Draw QR Codes dynamically using inline SVGs
-    drawSVGQRCode('qr-submit', 'https://jfkops.blue/avc/submit');
-    drawSVGQRCode('qr-vote', 'https://jfkops.blue/avc/vote');
-}
-
-// Simple placeholder SVG QR Code generator to simulate real scanning workflow
-function drawSVGQRCode(containerId, text) {
-    const el = document.getElementById(containerId);
-    if (!el) return;
-
-    // Render a high-fidelity vector mock QR Code inside the container
-    el.innerHTML = `
-        <svg viewBox="0 0 100 100" style="width: 80px; height: 80px;">
-            <!-- Outer borders -->
-            <rect x="0" y="0" width="100" height="100" fill="none" />
-            <!-- Anchor Top Left -->
-            <rect x="5" y="5" width="25" height="25" fill="#00205b" />
-            <rect x="10" y="10" width="15" height="15" fill="#fff" />
-            <rect x="13" y="13" width="9" height="9" fill="#00205b" />
-            <!-- Anchor Top Right -->
-            <rect x="70" y="5" width="25" height="25" fill="#00205b" />
-            <rect x="75" y="10" width="15" height="15" fill="#fff" />
-            <rect x="78" y="13" width="9" height="9" fill="#00205b" />
-            <!-- Anchor Bottom Left -->
-            <rect x="5" y="70" width="25" height="25" fill="#00205b" />
-            <rect x="10" y="75" width="15" height="15" fill="#fff" />
-            <rect x="13" y="78" width="9" height="9" fill="#00205b" />
-            <!-- Random QR pixels -->
-            <rect x="35" y="5" width="8" height="8" fill="#00205b" />
-            <rect x="47" y="15" width="6" height="6" fill="#00205b" />
-            <rect x="60" y="8" width="8" height="4" fill="#0082c9" />
-            <rect x="40" y="30" width="12" height="12" fill="#00205b" />
-            <rect x="5" y="40" width="10" height="5" fill="#0082c9" />
-            <rect x="20" y="45" width="15" height="10" fill="#00205b" />
-            <rect x="80" y="40" width="15" height="15" fill="#00205b" />
-            <rect x="45" y="50" width="8" height="20" fill="#0082c9" />
-            <rect x="70" y="70" width="10" height="10" fill="#00205b" />
-            <rect x="85" y="80" width="10" height="10" fill="#0082c9" />
-            <rect x="55" y="80" width="12" height="8" fill="#00205b" />
-        </svg>
-    `;
 }
 
 // --- Submit Issue Form Management ---
@@ -1739,188 +1698,6 @@ function bindEvents() {
             document.getElementById(`admin-tab-${targetTab}`).classList.add('active');
         });
     });
-
-    // 7. Admin outreach flyer print triggers
-    document.getElementById('btn-print-flyer-submit').addEventListener('click', () => printFlyer('submit'));
-    document.getElementById('btn-print-flyer-vote').addEventListener('click', () => printFlyer('vote'));
-}
-
-// --- Dynamic QR Code Generation ---
-function generateQRCodes() {
-    const basePath = window.location.origin + window.location.pathname;
-    const submitUrl = `${basePath}#submit-issue`;
-    const voteUrl = `${basePath}#vote`;
-
-    // Set URLs text in sidebars
-    const submitUrlEl = document.getElementById('url-text-submit-issue');
-    if (submitUrlEl) submitUrlEl.textContent = submitUrl;
-
-    const voteUrlEl = document.getElementById('url-text-vote');
-    if (voteUrlEl) voteUrlEl.textContent = voteUrl;
-
-    // Generate QR API strings (size 250x250, clean white background)
-    const submitQrApi = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(submitUrl)}`;
-    const voteQrApi = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(voteUrl)}`;
-
-    // Set images src
-    const imgSubmit = document.getElementById('qr-submit-issue');
-    if (imgSubmit) imgSubmit.src = submitQrApi;
-
-    const imgVote = document.getElementById('qr-vote');
-    if (imgVote) imgVote.src = voteQrApi;
-
-    const imgAdminSubmit = document.getElementById('qr-admin-outreach-submit');
-    if (imgAdminSubmit) imgAdminSubmit.src = submitQrApi;
-
-    const imgAdminVote = document.getElementById('qr-admin-outreach-vote');
-    if (imgAdminVote) imgAdminVote.src = voteQrApi;
-}
-
-// --- Print Outreach Flyer Trigger ---
-function printFlyer(type) {
-    const basePath = window.location.origin + window.location.pathname;
-    const targetUrl = type === 'submit' ? `${basePath}#submit-issue` : `${basePath}#vote`;
-    const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
-
-    const titleText = type === 'submit' ? 'SUBMIT OPERATIONS ISSUES' : 'CAST DEPARTMENT VOTES';
-    const descText = type === 'submit' 
-        ? 'Scan this code to report terminal bottlenecks, facility requests, scheduling issues, and coordinator ideas directly to the AVC committee.'
-        : 'Scan this code to review active coordinator proposals and cast your confidential vote on pending operational changes.';
-
-    const printWindow = window.open('', '_blank', 'width=800,height=800');
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Print Outreach Flyer</title>
-            <style>
-                body {
-                    font-family: 'Outfit', 'Inter', sans-serif;
-                    text-align: center;
-                    padding: 40px;
-                    color: #0f172a;
-                    background-color: #ffffff;
-                }
-                .flyer-container {
-                    border: 8px solid #00205B;
-                    border-radius: 16px;
-                    padding: 40px;
-                    max-width: 600px;
-                    margin: 0 auto;
-                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-                }
-                .brand-header {
-                    font-size: 28px;
-                    font-weight: 850;
-                    color: #00205B;
-                    letter-spacing: 2px;
-                    text-transform: uppercase;
-                    margin-bottom: 5px;
-                }
-                .brand-subtitle {
-                    font-size: 14px;
-                    color: #0082C9;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                    margin-bottom: 25px;
-                }
-                .flyer-title {
-                    font-size: 24px;
-                    font-weight: 800;
-                    color: #0f172a;
-                    margin-bottom: 15px;
-                    border-top: 2px dashed #e2e8f0;
-                    padding-top: 20px;
-                }
-                .flyer-description {
-                    font-size: 14px;
-                    color: #475569;
-                    line-height: 1.5;
-                    margin-bottom: 30px;
-                    padding: 0 20px;
-                }
-                .qr-box {
-                    border: 2px solid #e2e8f0;
-                    padding: 20px;
-                    border-radius: 12px;
-                    display: inline-block;
-                    background-color: #ffffff;
-                    margin-bottom: 25px;
-                }
-                .qr-img {
-                    width: 250px;
-                    height: 250px;
-                    display: block;
-                }
-                .instructions {
-                    font-size: 16px;
-                    font-weight: 700;
-                    color: #00205B;
-                    margin-bottom: 10px;
-                }
-                .instructions-list {
-                    list-style: none;
-                    padding: 0;
-                    font-size: 13px;
-                    color: #475569;
-                    margin-bottom: 20px;
-                }
-                .instructions-list li {
-                    margin-bottom: 6px;
-                }
-                .url-box {
-                    font-family: monospace;
-                    font-size: 11px;
-                    color: #64748b;
-                    background-color: #f8fafc;
-                    padding: 8px 12px;
-                    border-radius: 4px;
-                    word-break: break-all;
-                }
-                @media print {
-                    body {
-                        padding: 0;
-                    }
-                    .flyer-container {
-                        border: 6px solid #00205B;
-                        box-shadow: none;
-                        max-width: 100%;
-                    }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="flyer-container">
-                <div class="brand-header">✈ JETBLUE</div>
-                <div class="brand-subtitle">JFK OPS AVC COORDINATOR SYSTEM</div>
-                
-                <h2 class="flyer-title">\${titleText}</h2>
-                <p class="flyer-description">\${descText}</p>
-                
-                <div class="qr-box">
-                    <img src="\${qrApi}" class="qr-img" alt="QR Code">
-                </div>
-                
-                <div class="instructions">SCAN TO ACCESS</div>
-                <ul class="instructions-list">
-                    <li>1. Open the camera on your phone or mobile tablet</li>
-                    <li>2. Scan the code above to load the secure web page</li>
-                    <li>3. Submit your report or cast your confidential vote</li>
-                </ul>
-                
-                <div class="url-box">\${targetUrl}</div>
-            </div>
-            <script>
-                window.onload = function() {
-                    window.print();
-                    setTimeout(function() { window.close(); }, 500);
-                };
-            </script>
-        </body>
-        </html>
-    `);
-    printWindow.document.close();
 }
 
 // --- Set current Year and Quarter on Load ---
@@ -1967,7 +1744,6 @@ function initCurrentQuarterSelector() {
 window.addEventListener('DOMContentLoaded', () => {
     loadDataFromStorage();
     bindEvents();
-    generateQRCodes();
     initCurrentQuarterSelector();
     
     // Initial UI state setup
