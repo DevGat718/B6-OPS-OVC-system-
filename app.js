@@ -8,252 +8,10 @@ let issues = [];
 let polls = [];
 let votes = [];
 
-// --- Default Mock Data Generators ---
-const DEFAULT_ISSUES = [
-    {
-        irNumber: "IR-2026-001",
-        name: "John Doe",
-        id: "CM84021",
-        shift: "AM",
-        date: "2026-01-15T08:30:00-05:00",
-        category: "Scheduling",
-        title: "Fatigue-Mitigating Scheduling Rotation",
-        description: "The current scheduling pattern requires AM shift coordinators to transition to PM shifts with less than 12 hours of rest between shifts on consecutive days. This has been happening weekly and is impacting energy levels.",
-        impact: "Severe fatigue during PM shifts, increasing the risk of operational errors, gate assignment latency, and crew coordination delays.",
-        examples: "AM shift ending at 14:00 followed by a PM shift starting at 02:00 the following morning.",
-        proposedSolution: "Establish a minimum 14-hour rest transition window for any coordinator rotating from AM to PM shifts, or restrict rotations to set monthly blocks.",
-        priority: "High",
-        voteRequested: "Yes",
-        status: "COMPLETED",
-        owner: "Dave Jones, AVC Rep",
-        notes: "Discussed at AVC committee meeting. Proposed to Scheduling director. Agreement reached to adjust AM-to-PM rotation patterns.",
-        leadershipResponse: "Leadership has agreed to revise scheduling guidelines. Starting Q2 2026, rotation rest windows will increase to a minimum of 14 hours.",
-        nextAction: "None - Change successfully implemented",
-        followUpDate: "",
-        decisionSummary: "Rest requirement integrated into monthly roster build logic.",
-        history: [
-            { status: "SUBMITTED", timestamp: "2026-01-15T08:30:00-05:00", note: "Issue request submitted by John Doe." },
-            { status: "UNDER REVIEW", timestamp: "2026-01-18T10:00:00-05:00", note: "AVC assigned Dave Jones as owner." },
-            { status: "SUBMITTED TO LEADERSHIP", timestamp: "2026-01-25T14:00:00-05:00", note: "Formal proposal sent to Operations Director." },
-            { status: "APPROVED", timestamp: "2026-02-05T09:00:00-05:00", note: "Leadership approved the proposal." },
-            { status: "IMPLEMENTING", timestamp: "2026-02-15T08:00:00-05:00", note: "Testing rosters with new rotation parameters." },
-            { status: "COMPLETED", timestamp: "2026-03-01T17:00:00-05:00", note: "Rosters successfully published under new rules." }
-        ]
-    },
-    {
-        irNumber: "IR-2026-002",
-        name: "Alice Smith",
-        id: "CM38294",
-        shift: "PM",
-        date: "2026-04-12T15:45:00-04:00",
-        category: "Facilities",
-        title: "Air Conditioning Malfunction in Breakroom",
-        description: "The primary air conditioning unit in the JFK T5 Operations breakroom is failing. Temperature readings inside have repeatedly exceeded 78 degrees during summer afternoons, making rest breaks uncomfortable.",
-        impact: "Coordinators have no climate-controlled space to take mandatory rest breaks, leading to fatigue and discomfort during shifts.",
-        examples: "High temperature alerts documented on July 10, 11, and 12.",
-        proposedSolution: "Replace or overhaul the compressor for the T5 Ops breakroom line immediately.",
-        priority: "Urgent",
-        voteRequested: "No",
-        status: "IMPLEMENTING",
-        owner: "Elena Rostova, AVC Sec",
-        notes: "Facilities department contacted. Work order #F-98201 was generated. Compressor parts are on backorder.",
-        leadershipResponse: "Facilities management acknowledges issue. Temporary spot cooling units have been installed in the breakroom.",
-        nextAction: "Track compressor installation date with contractor",
-        followUpDate: "2026-08-10",
-        decisionSummary: "",
-        history: [
-            { status: "SUBMITTED", timestamp: "2026-04-12T15:45:00-04:00", note: "Issue request submitted by Alice Smith." },
-            { status: "UNDER REVIEW", timestamp: "2026-04-14T09:30:00-04:00", note: "Assigned to Elena Rostova." },
-            { status: "APPROVED", timestamp: "2026-04-16T11:00:00-04:00", note: "Facilities approved the replacement request." },
-            { status: "IMPLEMENTING", timestamp: "2026-04-20T14:00:00-04:00", note: "Temporary spot coolers placed while parts are shipped." }
-        ]
-    },
-    {
-        irNumber: "IR-2026-003",
-        name: "Elena Rostova",
-        id: "CM90283",
-        shift: "AM",
-        date: "2026-07-28T10:15:00-04:00",
-        category: "Operational Process",
-        title: "Support Coordinator Role During Peak Operations",
-        description: "During peak departure blocks, the main Operations Coordinator is overwhelmed by gate changes, tow coordination, and radio traffic. We need a designated support coordinator to assist with minor tasks.",
-        impact: "Severe workload spikes lead to radio queue times, flight dispatch delays, and customer boarding delays.",
-        examples: "Happens daily between 16:00 and 19:30 during European departures.",
-        proposedSolution: "Create a dedicated peak-hours assistant slot or a dedicated full-time support coordinator roster line.",
-        priority: "High",
-        voteRequested: "Yes",
-        status: "VOTING",
-        owner: "Dave Jones, AVC Rep",
-        notes: "Determined that coordinator feedback is critical. Set up a department poll to vote on options.",
-        leadershipResponse: "Leadership is open to adding headcount if data shows a strong preference and business case.",
-        nextAction: "Collect vote results and draft presentation",
-        followUpDate: "2026-08-08",
-        decisionSummary: "",
-        history: [
-            { status: "SUBMITTED", timestamp: "2026-07-28T10:15:00-04:00", note: "Issue request submitted by Elena Rostova." },
-            { status: "UNDER REVIEW", timestamp: "2026-07-29T11:00:00-04:00", note: "AVC assigned Dave Jones." },
-            { status: "VOTING", timestamp: "2026-08-01T08:00:00-04:00", note: "Department vote opened by AVC Admin." }
-        ]
-    },
-    {
-        irNumber: "IR-2026-004",
-        name: "Robert Johnson",
-        id: "CM47291",
-        shift: "Mid",
-        date: "2026-07-30T23:10:00-04:00",
-        category: "Compensation",
-        title: "Ad-hoc Shift Coverage Bonus Policy",
-        description: "Crewmembers covering last-minute open lines within 2 hours of departure do not receive the same premium shift incentive as those booking 24 hours in advance.",
-        impact: "Coordinators are hesitant to answer emergency coverage calls, leading to short-staffed operation shifts.",
-        examples: "Occurred twice on the weekend of July 25th.",
-        proposedSolution: "Implement a flat $50 'Ready Reserve' coverage bonus for shifts filled on less than 3 hours notice.",
-        priority: "Medium",
-        voteRequested: "Unsure / AVC Decide",
-        status: "SUBMITTED TO LEADERSHIP",
-        owner: "Dave Jones, AVC Rep",
-        notes: "Formal petition drafted and submitted to HR/Finance and JFK Airport operations lead.",
-        leadershipResponse: "Currently being analyzed by regional finance team. Response expected by September.",
-        nextAction: "Request status update at next monthly roundtable",
-        followUpDate: "2026-09-01",
-        decisionSummary: "",
-        history: [
-            { status: "SUBMITTED", timestamp: "2026-07-30T23:10:00-04:00", note: "Issue request submitted by Robert Johnson." },
-            { status: "UNDER REVIEW", timestamp: "2026-08-01T09:00:00-04:00", note: "Under review by AVC Committee." },
-            { status: "SUBMITTED TO LEADERSHIP", timestamp: "2026-08-03T11:30:00-04:00", note: "Elevated to regional finance leadership." }
-        ]
-    },
-    {
-        irNumber: "IR-2026-005",
-        name: "Michael Chang",
-        id: "CM55281",
-        shift: "PM",
-        date: "2026-08-02T13:40:00-04:00",
-        category: "Technology / Systems",
-        title: "Coordination Flight Tracking Latency",
-        description: "The primary flight dispatch tracking dashboard in the coordinator desk has a 3-5 minute delay in reflecting gate capture times compared to real-time ACARS reports.",
-        impact: "Coordination is operating on delayed gate status data, causing tow trucks to be dispatched prematurely or late.",
-        examples: "Affecting both terminal screens and mobile tablets.",
-        proposedSolution: "Refetch database feed API endpoints every 30 seconds instead of 5 minutes.",
-        priority: "Medium",
-        voteRequested: "No",
-        status: "UNDER REVIEW",
-        owner: "Elena Rostova, AVC Sec",
-        notes: "Contacting Systems Administrator to verify if local refresh intervals can be configured.",
-        leadershipResponse: "",
-        nextAction: "Obtain IT feedback on local registry refresh settings",
-        followUpDate: "2026-08-15",
-        decisionSummary: "",
-        history: [
-            { status: "SUBMITTED", timestamp: "2026-08-02T13:40:00-04:00", note: "Issue request submitted by Michael Chang." },
-            { status: "UNDER REVIEW", timestamp: "2026-08-04T09:00:00-04:00", note: "Assigned to Elena Rostova for systems lookup." }
-        ]
-    },
-    {
-        irNumber: "IR-2026-006",
-        name: "Daniel Alvarez",
-        id: "CM19283",
-        shift: "AM",
-        date: "2026-08-03T07:20:00-04:00",
-        category: "AO / GO / OPS Coordination",
-        title: "Gate Ingestion Process Delay",
-        description: "Airport operations coordination does not update towing arrivals fast enough, leaving airplanes holding on taxiway Tango for gate clear alerts.",
-        impact: "Blocks taxiway corridors and results in engine burn fuel waste.",
-        examples: "Tango hold times exceed 12 minutes on average during arrivals bank.",
-        proposedSolution: "Clarify coordinator rules for releasing taxi slots.",
-        priority: "Low",
-        voteRequested: "Unsure / AVC Decide",
-        status: "NEEDS INFORMATION",
-        owner: "Unassigned",
-        notes: "Requested logs from submitter to identify specific flight arrivals and gate numbers.",
-        leadershipResponse: "",
-        nextAction: "Wait for submitter feedback on specific gate delay times",
-        followUpDate: "2026-08-12",
-        decisionSummary: "",
-        history: [
-            { status: "SUBMITTED", timestamp: "2026-08-03T07:20:00-04:00", note: "Issue request submitted by Daniel Alvarez." },
-            { status: "NEEDS INFORMATION", timestamp: "2026-08-04T10:00:00-04:00", note: "Status changed to NEEDS INFORMATION by reviewer." }
-        ]
-    }
-];
-
-const DEFAULT_POLLS = [
-    {
-        pollId: "POLL-2026-001",
-        irNumber: "IR-2026-003",
-        title: "Support Coordinator Role During Peak Operations",
-        description: "AVC is negotiating resource allocation. In order to present a strong data-backed case to leadership, please vote on your preferred operational configuration.",
-        option1: "Full-Time Support Coordinator",
-        option1Desc: "Create a dedicated full-time coordinator line on all AM/PM rosters to handle background tasks.",
-        option2: "Peak-Hours Support Coordinator",
-        option2Desc: "Assign an extra helper only during high departure slots (16:00 to 20:00 departures).",
-        option3: "Maintain Current Process",
-        option3Desc: "Keep existing single coordinator rotation without adding dedicated support personnel.",
-        openDate: "2026-08-01",
-        closeDate: "2026-08-10",
-        eligibleVoters: 68,
-        status: "OPEN"
-    },
-    {
-        pollId: "POLL-2025-004",
-        irNumber: "IR-2026-001",
-        title: "AM-PM Rotation Rest Periods",
-        description: "Historical vote to gauge coordinator feedback on AM-to-PM shift transition rest requirements.",
-        option1: "12 Hours Minimum Rest",
-        option1Desc: "Coordinators require at least 12 hours between consecutive shifts.",
-        option2: "14 Hours Minimum Rest",
-        option2Desc: "Coordinators require at least 14 hours between consecutive shifts (Recommended).",
-        option3: "Standard FAA Roster Guidelines",
-        option3Desc: "Keep scheduling in alignment with FAA minimum limits (currently 9-10 hours).",
-        openDate: "2026-01-20",
-        closeDate: "2026-01-30",
-        eligibleVoters: 68,
-        status: "CLOSED"
-    }
-];
-
-const DEFAULT_VOTES = [
-    // Poll 2026-001 (Active, 34 mock votes pre-populated to show charts)
-    { pollId: "POLL-2026-001", name: "David Miller", id: "CM10291", option: "Option 1", comment: "This is crucial, workload is unsafe during summer peaks.", timestamp: "2026-08-01T09:12:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Sarah Connor", id: "CM29384", option: "Option 1", comment: "We need full-time support, peak-hours only doesn't account for delays.", timestamp: "2026-08-01T10:15:00-04:00" },
-    { pollId: "POLL-2026-001", name: "James Bond", id: "CM00007", option: "Option 2", comment: "Peak support is fine and more realistic for approval.", timestamp: "2026-08-01T11:40:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Patricia Neal", id: "CM48291", option: "Option 1", comment: "", timestamp: "2026-08-01T14:22:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Robert Shaw", id: "CM29103", option: "Option 3", comment: "We just need better training, not another body on desk.", timestamp: "2026-08-02T08:11:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Linda Blair", id: "CM39182", option: "Option 1", comment: "We are burning out. Yes to Option 1.", timestamp: "2026-08-02T10:30:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Gary Oldman", id: "CM73921", option: "Option 2", comment: "", timestamp: "2026-08-02T16:15:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Bruce Wayne", id: "CM99999", option: "Option 1", comment: "Full time is best.", timestamp: "2026-08-03T01:20:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Clark Kent", id: "CM77777", option: "Option 2", comment: "Peak block support solves 90% of the issues.", timestamp: "2026-08-03T08:05:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Diana Prince", id: "CM88888", option: "Option 1", comment: "", timestamp: "2026-08-03T09:15:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Hal Jordan", id: "CM33333", option: "Option 1", comment: "", timestamp: "2026-08-03T10:20:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Barry Allen", id: "CM11111", option: "Option 1", comment: "Workload gets unsafe quickly.", timestamp: "2026-08-03T11:45:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Arthur Curry", id: "CM22222", option: "Option 3", comment: "", timestamp: "2026-08-03T13:00:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Victor Stone", id: "CM44444", option: "Option 2", comment: "", timestamp: "2026-08-03T14:15:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Oliver Queen", id: "CM55555", option: "Option 2", comment: "Let's be realistic, management won't give us Option 1.", timestamp: "2026-08-03T15:30:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Peter Parker", id: "CM12121", option: "Option 1", comment: "With great operations comes great responsibility. Option 1.", timestamp: "2026-08-03T17:10:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Tony Stark", id: "CM30000", option: "Option 1", comment: "Need automation too, but full-time coordinator is step 1.", timestamp: "2026-08-04T08:00:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Steve Rogers", id: "CM19450", option: "Option 1", comment: "A solid plan to protect our crew.", timestamp: "2026-08-04T09:30:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Natasha Romanoff", id: "CM99000", option: "Option 2", comment: "", timestamp: "2026-08-04T10:15:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Bruce Banner", id: "CM80000", option: "Option 2", comment: "Stress is too high otherwise.", timestamp: "2026-08-04T11:00:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Thor Odinson", id: "CM10000", option: "Option 1", comment: "", timestamp: "2026-08-04T12:00:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Wanda Maximoff", id: "CM50000", option: "Option 1", comment: "", timestamp: "2026-08-04T13:40:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Vision Android", id: "CM01010", option: "Option 2", comment: "Efficiency metrics suggest Option 2 is ideal.", timestamp: "2026-08-04T14:10:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Sam Wilson", id: "CM40000", option: "Option 1", comment: "", timestamp: "2026-08-04T15:25:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Bucky Barnes", id: "CM19170", option: "Option 3", comment: "Just make sure the radio works.", timestamp: "2026-08-04T16:00:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Scott Lang", id: "CM12344", option: "Option 1", comment: "", timestamp: "2026-08-04T16:50:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Hope VanDyne", id: "CM99988", option: "Option 1", comment: "", timestamp: "2026-08-04T17:10:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Carol Danvers", id: "CM90001", option: "Option 1", comment: "Higher, further, faster. Full support.", timestamp: "2026-08-04T18:00:00-04:00" },
-    { pollId: "POLL-2026-001", name: "T'Challa King", id: "CM44000", option: "Option 1", comment: "For the safety of the airport operation.", timestamp: "2026-08-04T19:05:00-04:00" },
-    { pollId: "POLL-2026-001", name: "Stephen Strange", id: "CM00100", option: "Option 2", comment: "A logical split of resources.", timestamp: "2026-08-04T20:20:00-04:00" },
-
-    // Poll 2025-004 (Closed, 48 votes)
-    ...Array.from({ length: 48 }, (_, i) => ({
-        pollId: "POLL-2025-004",
-        name: `Voter ${i + 1}`,
-        id: `CM998${String(i).padStart(2, '0')}`,
-        option: i % 5 === 0 ? "Option 1" : (i % 5 === 4 ? "Option 3" : "Option 2"), // Option 2 (14 hrs) wins majority
-        comment: i % 12 === 0 ? "Need rest rules formalized." : "",
-        timestamp: "2026-01-22T10:00:00-05:00"
-    }))
-];
+// --- Default Production Data Structures (Clean State) ---
+const DEFAULT_ISSUES = [];
+const DEFAULT_POLLS = [];
+const DEFAULT_VOTES = [];
 
 // --- App Navigation Manager ---
 function switchTab(targetTabId) {
@@ -293,6 +51,15 @@ function switchTab(targetTabId) {
 
 // --- Data Synchronization (localStorage) ---
 function loadDataFromStorage() {
+    // Migration check: Ensure database starts clean for production 30-member crew deployment
+    const productionInit = localStorage.getItem('jfk_ops_v2_clean_init');
+    if (!productionInit) {
+        localStorage.setItem('jfk_ops_issues', JSON.stringify([]));
+        localStorage.setItem('jfk_ops_polls', JSON.stringify([]));
+        localStorage.setItem('jfk_ops_votes', JSON.stringify([]));
+        localStorage.setItem('jfk_ops_v2_clean_init', 'true');
+    }
+
     const storedIssues = localStorage.getItem('jfk_ops_issues');
     const storedPolls = localStorage.getItem('jfk_ops_polls');
     const storedVotes = localStorage.getItem('jfk_ops_votes');
@@ -340,6 +107,7 @@ function resetDemoData() {
         localStorage.setItem('jfk_ops_issues', JSON.stringify([]));
         localStorage.setItem('jfk_ops_polls', JSON.stringify([]));
         localStorage.setItem('jfk_ops_votes', JSON.stringify([]));
+        localStorage.setItem('jfk_ops_v2_clean_init', 'true');
         
         alert("System database has been wiped clean. Starting fresh!");
         location.reload();
@@ -406,7 +174,7 @@ function loadDashboard() {
                     </div>
                     <p class="text-muted mt-2" style="font-size:12.5px;">${p.description.substring(0, 120)}...</p>
                     <div class="followup-action mt-2">
-                        <span>Participation: <strong>${pVotes.length}</strong> / ${p.eligibleVoters} Coordinators (${Math.round((pVotes.length/p.eligibleVoters)*100)}%)</span>
+                        <span>Participation: <strong>${pVotes.length}</strong> / ${p.eligibleVoters || 30} Coordinators (${Math.round((pVotes.length / (p.eligibleVoters || 30)) * 100) || 0}%)</span>
                     </div>
                 </div>
             `;
@@ -650,7 +418,7 @@ function loadVotePage() {
                 </div>
                 <div class="poll-card-footer">
                     <div class="poll-dates">
-                        Participation: <strong>${pVotes.length}</strong> / ${p.eligibleVoters} Crewmembers (${Math.round((pVotes.length / p.eligibleVoters)*100)}%)
+                        Participation: <strong>${pVotes.length}</strong> / ${p.eligibleVoters || 30} Crewmembers (${Math.round((pVotes.length / (p.eligibleVoters || 30)) * 100) || 0}%)
                     </div>
                     <button class="btn btn-primary" onclick="openBallotModal('${p.pollId}')">Submit Vote</button>
                 </div>
@@ -664,6 +432,17 @@ function loadVotePage() {
 function loadResultsPage() {
     const container = document.getElementById('results-dashboard-container');
     container.innerHTML = '';
+
+    if (polls.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state-card" style="grid-column: 1 / -1; text-align:center; padding: 48px 20px; background: white; border-radius: 8px; border: 1px dashed var(--border-color);">
+                <i class="fa-solid fa-chart-column" style="font-size: 40px; color: var(--text-muted); margin-bottom: 16px;"></i>
+                <h4 style="margin-bottom: 8px; color: var(--navy-dark);">No Voting Results Available</h4>
+                <p style="color: var(--text-muted); max-width: 480px; margin: 0 auto; font-size: 14px;">There are no active or completed coordinator ballots recorded yet. Results will appear here once department polls are created and votes are submitted.</p>
+            </div>
+        `;
+        return;
+    }
 
     polls.forEach(p => {
         // Find votes for this poll
@@ -703,9 +482,9 @@ function loadResultsPage() {
                     <span class="badge ${isClosed ? 'badge-status-archived' : 'badge-status-voting'}">${p.status}</span>
                 </div>
                 <div class="results-meta-row mt-2">
-                    <span class="results-meta-item">Eligible Voters: <span class="results-meta-val">${p.eligibleVoters}</span></span>
+                    <span class="results-meta-item">Eligible Voters: <span class="results-meta-val">${p.eligibleVoters || 30}</span></span>
                     <span class="results-meta-item">Votes Received: <span class="results-meta-val">${pVotes.length}</span></span>
-                    <span class="results-meta-item">Participation: <span class="results-meta-val">${Math.round((pVotes.length / p.eligibleVoters) * 100)}%</span></span>
+                    <span class="results-meta-item">Participation: <span class="results-meta-val">${Math.round((pVotes.length / (p.eligibleVoters || 30)) * 100) || 0}%</span></span>
                 </div>
             </div>
 
@@ -1095,7 +874,7 @@ function handleCreatePoll(event) {
     const opt3Desc = document.getElementById('poll-opt3-desc').value.trim();
     const openDate = document.getElementById('poll-open-date').value;
     const closeDate = document.getElementById('poll-close-date').value;
-    const eligibleVoters = parseInt(document.getElementById('poll-eligible-voters').value) || 68;
+    const eligibleVoters = parseInt(document.getElementById('poll-eligible-voters').value) || 30;
 
     const pollId = `POLL-2026-${String(polls.length + 1).padStart(3, '0')}`;
 
@@ -1142,6 +921,11 @@ function loadAdminPollsList() {
     const list = document.getElementById('admin-polls-list-rows');
     list.innerHTML = '';
 
+    if (polls.length === 0) {
+        list.innerHTML = '<p class="text-muted text-center p-4">No active or archived polls exist in the database.</p>';
+        return;
+    }
+
     polls.forEach(p => {
         const pVotes = votes.filter(v => v.pollId === p.pollId);
         const div = document.createElement('div');
@@ -1156,7 +940,7 @@ function loadAdminPollsList() {
                     <div class="admin-poll-meta mt-1">
                         ${connectedBadge}
                         <span>ID: <strong class="font-mono">${p.pollId}</strong></span> | 
-                        <span>Eligible: <strong>${p.eligibleVoters}</strong></span> | 
+                        <span>Eligible: <strong>${p.eligibleVoters || 30}</strong></span> | 
                         <span>Votes: <strong>${pVotes.length}</strong></span>
                     </div>
                 </div>
