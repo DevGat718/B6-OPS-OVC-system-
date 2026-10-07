@@ -48,6 +48,13 @@
                         <option value="mobile-sim">Mobile View (Demo Display)</option>
                     </select>
                 </div>
+
+                <div class="control-group" style="display:flex; align-items:center;">
+                    <div class="cloud-status-badge local" id="cloud-status-badge" title="Database Sync Mode: Click to view details" onclick="openCloudSettingsShortcut()">
+                        <span class="cloud-status-dot" id="cloud-status-dot"></span>
+                        <span class="cloud-status-label" id="cloud-status-label">Detecting Sync...</span>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -703,8 +710,81 @@
                     </div>
                 </div>
 
-                <!-- Admin Tab 4: System Maintenance -->
+                <!-- Admin Tab 4: System Maintenance & Cloud Sync -->
                 <div class="admin-tab-content" id="admin-tab-admin-settings">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title">Cloud Database Synchronization (Multi-User Link Sharing)</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">
+                                Connect Google Firebase Firestore so that any issue requests, department polls, and votes cast are instantly synchronized across all 30 crew members opening your shared link in real time.
+                            </p>
+                            
+                            <div class="cloud-sync-status-box mb-4" id="admin-cloud-status-box" style="padding: 16px; border-radius: var(--border-radius); border: 1px solid var(--border-color); background-color: var(--bg-primary);">
+                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 15px;" id="admin-cloud-mode-title">Database Mode: Detecting...</div>
+                                        <div class="text-muted" style="font-size: 13px;" id="admin-cloud-mode-desc">Checking active connection to Firebase Firestore...</div>
+                                    </div>
+                                    <span class="badge badge-priority-urgent" id="admin-cloud-mode-badge">Checking</span>
+                                </div>
+                            </div>
+
+                            <form id="firebase-config-form" class="aviation-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="fb-project-id">Firebase Project ID</label>
+                                        <input type="text" id="fb-project-id" placeholder="e.g. jfk-ops-avc">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="fb-api-key">Firebase API Key</label>
+                                        <input type="text" id="fb-api-key" placeholder="AIzaSy...">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="fb-auth-domain">Auth Domain (Optional)</label>
+                                        <input type="text" id="fb-auth-domain" placeholder="jfk-ops-avc.firebaseapp.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="fb-app-id">App ID (Optional)</label>
+                                        <input type="text" id="fb-app-id" placeholder="1:123456789:web:abcdef">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="fb-json-paste">Or Paste Full Firebase Config Object (JSON)</label>
+                                    <textarea id="fb-json-paste" rows="3" placeholder='{ "apiKey": "...", "projectId": "...", ... }'></textarea>
+                                </div>
+
+                                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                                    <button type="submit" class="btn btn-primary" id="btn-save-cloud-config">
+                                        Save & Connect Cloud Database
+                                    </button>
+                                    <button type="button" class="btn btn-outline" id="btn-test-cloud-connection">
+                                        Test Live Connection
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" id="btn-disconnect-cloud">
+                                        Use Local Mode Only
+                                    </button>
+                                </div>
+                                <div id="cloud-config-feedback" class="mt-3 hidden"></div>
+                            </form>
+
+                            <div class="setup-guide-box mt-4" style="background: rgba(0, 32, 91, 0.04); border-left: 4px solid var(--primary-color); padding: 16px; border-radius: 4px;">
+                                <h5 style="color: var(--primary-color); margin-bottom: 8px;">Quick Setup Guide (100% Free):</h5>
+                                <ol style="margin-left: 20px; font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                                    <li>Visit <strong><a href="https://console.firebase.google.com" target="_blank" style="color: var(--primary-color); text-decoration: underline;">console.firebase.google.com</a></strong> and sign in with your Google account.</li>
+                                    <li>Click <strong>Add project</strong> (e.g. <code>jfk-ops-avc</code>).</li>
+                                    <li>Navigate to <strong>Build &gt; Firestore Database</strong> &gt; click <strong>Create database</strong>. Choose location and select <strong>Test mode</strong> (or apply <code>firestore.rules</code>).</li>
+                                    <li>Go to <strong>Project Settings</strong> (gear icon) &gt; scroll down to <strong>Your apps</strong> &gt; click the <strong>Web &lt;/&gt;</strong> icon, register app, and copy the <code>firebaseConfig</code> values into the form above or into <code>firebase-config.js</code> in this repository.</li>
+                                    <li>Once saved or committed to GitHub, every coordinator and crew member who opens the link will immediately see real-time shared updates!</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">System Maintenance & Database Controls</h3>
@@ -717,7 +797,7 @@
                                     <span>⚠️</span> Danger Zone: Reset System Database
                                 </h4>
                                 <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 18px; line-height: 1.5;">
-                                    Resetting the database will permanently wipe all newly submitted coordinator issue requests, custom polls, voter registry entries, and audit logs. The system will start from a clean slate. Requires a verification prompt before confirming.
+                                    Resetting the database will permanently wipe all newly submitted coordinator issue requests, custom polls, voter registry entries, and audit logs across both cloud and local storage. The system will start from a clean slate. Requires a verification prompt before confirming.
                                 </p>
                                 <button class="btn btn-danger" id="btn-reset-demo-data">
                                     Reset Database to Factory Defaults
@@ -935,6 +1015,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Firebase SDK (Compat via CDN for vanilla web app) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
 
     <!-- Script Entry Point -->
     <script src="app.js"></script>

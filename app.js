@@ -49,7 +49,148 @@ function switchTab(targetTabId) {
     }
 }
 
-// --- Data Synchronization (localStorage) ---
+// --- Database State & Cloud Synchronization Layer (Firebase Firestore + Local Storage) ---
+let db = null;
+let isCloudConnected = false;
+let issuesUnsubscribe = null;
+let pollsUnsubscribe = null;
+let votesUnsubscribe = null;
+
+function updateCloudStatusUI(connected, customMsg) {
+    const badge = document.getElementById('cloud-status-badge');
+    const dot = document.getElementById('cloud-status-dot');
+    const label = document.getElementById('cloud-status-label');
+
+    if (badge && dot && label) {
+        if (connected) {
+            badge.className = 'cloud-status-badge connected';
+            label.textContent = customMsg || 'Cloud Synced';
+            badge.title = 'Connected to Cloud Database: Real-time sync enabled for all link visitors';
+        } else {
+            badge.className = 'cloud-status-badge local';
+            label.textContent = customMsg || 'Local Mode';
+            badge.title = 'Running in Local Storage Mode: Connect Firebase in Admin Settings to share data across devices';
+        }
+    }
+
+    // Admin maintenance tab elements
+    const adminBox = document.getElementById('admin-cloud-status-box');
+    const adminTitle = document.getElementById('admin-cloud-mode-title');
+    const adminDesc = document.getElementById('admin-cloud-mode-desc');
+    const adminBadge = document.getElementById('admin-cloud-mode-badge');
+
+    if (adminBox && adminTitle && adminDesc && adminBadge) {
+        const config = (typeof getActiveFirebaseConfig === 'function') ? getActiveFirebaseConfig() : null;
+        if (connected) {
+            adminTitle.textContent = `Database Mode: Google Cloud Firestore (${config?.projectId || 'Active'})`;
+            adminDesc.textContent = 'All issues, polls, and votes are automatically shared across all devices and crew members opening the link in real time.';
+            adminBadge.className = 'badge badge-status-completed';
+            adminBadge.textContent = 'LIVE CLOUD SYNC';
+        } else {
+            adminTitle.textContent = 'Database Mode: Local Browser Storage (Single Device)';
+            adminDesc.textContent = 'Data is currently stored only in this browser. To share data across your 30 crew members, enter your Firebase configuration below.';
+            adminBadge.className = 'badge badge-priority-urgent';
+            adminBadge.textContent = 'LOCAL ONLY';
+        }
+    }
+}
+
+function refreshActivePage() {
+    const activeNav = document.querySelector('.nav-item.active');
+    const target = activeNav ? activeNav.getAttribute('data-target') : 'dashboard';
+    if (target === 'dashboard') loadDashboard();
+    else if (target === 'open-issues') loadOpenIssues();
+    else if (target === 'vote') loadVotePage();
+    else if (target === 'results') loadResultsPage();
+    else if (target === 'updates') loadUpdatesPage();
+    else if (target === 'admin') loadAdminPage();
+}
+
+function initDataSync() {
+    const config = (typeof getActiveFirebaseConfig === 'function') ? getActiveFirebaseConfig() : null;
+
+    if (config && config.projectId && config.apiKey && typeof firebase !== 'undefined') {
+        try {
+            if (!firebase.apps || !firebase.apps.length) {
+                firebase.initializeApp(config);
+            }
+            db = firebase.firestore();
+            isCloudConnected = true;
+            updateCloudStatusUI(true, 'Connecting...');
+
+            // Start realtime listeners for all collections
+            startCloudListeners();
+            return;
+        } catch (err) {
+            console.warn("Failed to connect Firebase Firestore:", err);
+            isCloudConnected = false;
+        }
+    }
+
+    // Fallback to local storage if Firebase is not yet configured or offline
+    isCloudConnected = false;
+    updateCloudStatusUI(false, 'Local Mode');
+    loadDataFromStorage();
+}
+
+function startCloudListeners() {
+    if (!db) return;
+
+    try {
+        // 1. Issues Realtime Listener
+        if (issuesUnsubscribe) issuesUnsubscribe();
+        issuesUnsubscribe = db.collection('issues').onSnapshot(snapshot => {
+            const cloudIssues = [];
+            snapshot.forEach(doc => {
+                cloudIssues.push(doc.data());
+            });
+            cloudIssues.sort((a, b) => new Date(b.date) - new Date(a.date));
+            issues = cloudIssues;
+            saveIssuesToStorage();
+            updateCloudStatusUI(true, 'Cloud Synced');
+            refreshActivePage();
+        }, err => {
+            console.error("Firestore issues listener error:", err);
+            updateCloudStatusUI(false, 'Sync Offline');
+        });
+
+        // 2. Polls Realtime Listener
+        if (pollsUnsubscribe) pollsUnsubscribe();
+        pollsUnsubscribe = db.collection('polls').onSnapshot(snapshot => {
+            const cloudPolls = [];
+            snapshot.forEach(doc => {
+                cloudPolls.push(doc.data());
+            });
+            polls = cloudPolls;
+            savePollsToStorage();
+            updateCloudStatusUI(true, 'Cloud Synced');
+            refreshActivePage();
+        }, err => {
+            console.error("Firestore polls listener error:", err);
+            updateCloudStatusUI(false, 'Sync Offline');
+        });
+
+        // 3. Votes Realtime Listener
+        if (votesUnsubscribe) votesUnsubscribe();
+        votesUnsubscribe = db.collection('votes').onSnapshot(snapshot => {
+            const cloudVotes = [];
+            snapshot.forEach(doc => {
+                cloudVotes.push(doc.data());
+            });
+            votes = cloudVotes;
+            saveVotesToStorage();
+            updateCloudStatusUI(true, 'Cloud Synced');
+            refreshActivePage();
+        }, err => {
+            console.error("Firestore votes listener error:", err);
+            updateCloudStatusUI(false, 'Sync Offline');
+        });
+    } catch (e) {
+        console.warn("Error establishing cloud listeners:", e);
+        loadDataFromStorage();
+    }
+}
+
 function loadDataFromStorage() {
     // Migration check: Ensure database starts clean for production 30-member crew deployment
     const productionInit = localStorage.getItem('jfk_ops_v2_clean_init');
@@ -98,12 +239,122 @@ function saveVotesToStorage() {
     localStorage.setItem('jfk_ops_votes', JSON.stringify(votes));
 }
 
-function resetDemoData() {
+// --- Cloud-aware Save & Delete Operations ---
+async function saveIssueRecord(issueObj) {
+    const existingIdx = issues.findIndex(i => i.irNumber === issueObj.irNumber);
+    if (existingIdx >= 0) {
+        issues[existingIdx] = issueObj;
+    } else {
+        issues.unshift(issueObj);
+    }
+    saveIssuesToStorage();
+
+    if (isCloudConnected && db) {
+        try {
+            await db.collection('issues').doc(issueObj.irNumber).set(issueObj);
+        } catch (e) {
+            console.error("Error saving issue to Firestore:", e);
+        }
+    }
+}
+
+async function savePollRecord(pollObj) {
+    const existingIdx = polls.findIndex(p => p.pollId === pollObj.pollId);
+    if (existingIdx >= 0) {
+        polls[existingIdx] = pollObj;
+    } else {
+        polls.unshift(pollObj);
+    }
+    savePollsToStorage();
+
+    if (isCloudConnected && db) {
+        try {
+            await db.collection('polls').doc(pollObj.pollId).set(pollObj);
+        } catch (e) {
+            console.error("Error saving poll to Firestore:", e);
+        }
+    }
+}
+
+async function saveVoteRecord(ballotObj) {
+    votes.push(ballotObj);
+    saveVotesToStorage();
+
+    if (isCloudConnected && db) {
+        try {
+            const safeDocId = `${ballotObj.pollId}_${ballotObj.id}_${Date.now()}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+            await db.collection('votes').doc(safeDocId).set(ballotObj);
+        } catch (e) {
+            console.error("Error saving vote to Firestore:", e);
+        }
+    }
+}
+
+async function deleteVoteRecord(pollId, cmId, timestamp) {
+    votes = votes.filter(v => !(v.pollId === pollId && v.id === cmId && v.timestamp === timestamp));
+    saveVotesToStorage();
+
+    if (isCloudConnected && db) {
+        try {
+            const snapshot = await db.collection('votes')
+                .where('pollId', '==', pollId)
+                .where('id', '==', cmId)
+                .get();
+            const batch = db.batch();
+            snapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+        } catch (e) {
+            console.error("Error deleting vote from Firestore:", e);
+        }
+    }
+}
+
+async function resetPollVotesRecord(pollId) {
+    votes = votes.filter(v => v.pollId !== pollId);
+    saveVotesToStorage();
+
+    if (isCloudConnected && db) {
+        try {
+            const snapshot = await db.collection('votes').where('pollId', '==', pollId).get();
+            const batch = db.batch();
+            snapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+        } catch (e) {
+            console.error("Error wiping poll votes in Firestore:", e);
+        }
+    }
+}
+
+async function wipeCloudDatabase() {
+    if (isCloudConnected && db) {
+        try {
+            const collections = ['issues', 'polls', 'votes'];
+            for (const col of collections) {
+                const snapshot = await db.collection(col).get();
+                const batch = db.batch();
+                snapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+            }
+        } catch (e) {
+            console.error("Error wiping Firestore database:", e);
+        }
+    }
+}
+
+async function resetDemoData() {
     const doubleConfirm = confirm(
-        "⚠️ DANGER: This will permanently WIPE OUT all database data, including all issues, voting polls, coordinator ballots, and progress history. You will start with a completely clean, empty application.\n\nAre you absolutely sure you want to proceed with this wipe?"
+        "⚠️ DANGER: This will permanently WIPE OUT all database data, including all issues, voting polls, coordinator ballots, and progress history across both cloud and local storage.\n\nAre you absolutely sure you want to proceed with this wipe?"
     );
     if (doubleConfirm) {
-        // Clear storage keys and set to empty arrays so it starts from scratch
+        if (isCloudConnected) {
+            await wipeCloudDatabase();
+        }
         localStorage.setItem('jfk_ops_issues', JSON.stringify([]));
         localStorage.setItem('jfk_ops_polls', JSON.stringify([]));
         localStorage.setItem('jfk_ops_votes', JSON.stringify([]));
@@ -228,7 +479,7 @@ function loadDashboard() {
 }
 
 // --- Submit Issue Form Management ---
-function handleIssueSubmit(event) {
+async function handleIssueSubmit(event) {
     event.preventDefault();
 
     // Capture fields
@@ -290,9 +541,8 @@ function handleIssueSubmit(event) {
         ]
     };
 
-    // Save to list
-    issues.push(newIssue);
-    saveIssuesToStorage();
+    // Save to list and sync with cloud
+    await saveIssueRecord(newIssue);
 
     // Trigger success screen overlay
     document.getElementById('success-ir-number').textContent = irNumber;
@@ -860,7 +1110,7 @@ function loadAdminPollConnectSelect() {
     });
 }
 
-function handleCreatePoll(event) {
+async function handleCreatePoll(event) {
     event.preventDefault();
 
     const connectedIr = document.getElementById('poll-connect-ir').value;
@@ -895,8 +1145,7 @@ function handleCreatePoll(event) {
         status: "OPEN"
     };
 
-    polls.push(newPoll);
-    savePollsToStorage();
+    await savePollRecord(newPoll);
 
     // If connected to an IR, automatically update its status to VOTING
     if (connectedIr) {
@@ -908,7 +1157,7 @@ function handleCreatePoll(event) {
                 timestamp: new Date().toISOString(),
                 note: `Coordinator poll created and launched: ${pollId}`
             });
-            saveIssuesToStorage();
+            await saveIssueRecord(ir);
         }
     }
 
@@ -959,19 +1208,18 @@ function loadAdminPollsList() {
     });
 }
 
-function togglePollStatus(pollId, newStatus) {
+async function togglePollStatus(pollId, newStatus) {
     const poll = polls.find(p => p.pollId === pollId);
     if (poll) {
         poll.status = newStatus;
-        savePollsToStorage();
+        await savePollRecord(poll);
         loadAdminPage();
     }
 }
 
-function resetPollVotes(pollId) {
+async function resetPollVotes(pollId) {
     if (confirm(`Are you absolutely sure you want to wipe all registered voter ballots for poll ${pollId}? This cannot be undone.`)) {
-        votes = votes.filter(v => v.pollId !== pollId);
-        saveVotesToStorage();
+        await resetPollVotesRecord(pollId);
         alert(`Ballots reset for ${pollId}.`);
         loadAdminPage();
     }
@@ -1032,10 +1280,9 @@ function loadAdminVotersRegistry() {
     }
 }
 
-function deleteIndividualVote(pollId, cmId, timestamp) {
+async function deleteIndividualVote(pollId, cmId, timestamp) {
     if (confirm(`Do you want to reset the vote submission for Crewmember ID ${cmId} on poll ${pollId}? This will allow the crewmember to re-vote.`)) {
-        votes = votes.filter(v => !(v.pollId === pollId && v.id === cmId && v.timestamp === timestamp));
-        saveVotesToStorage();
+        await deleteVoteRecord(pollId, cmId, timestamp);
         loadAdminPage();
     }
 }
@@ -1255,7 +1502,7 @@ function openManageIssueModal(irNumber) {
     openModal('modal-manage-issue');
 }
 
-function handleManageIssueSave(event) {
+async function handleManageIssueSave(event) {
     event.preventDefault();
 
     const irNumber = document.getElementById('manage-issue-idx').value;
@@ -1290,7 +1537,7 @@ function handleManageIssueSave(event) {
         });
     }
 
-    saveIssuesToStorage();
+    await saveIssueRecord(ir);
     closeModal('modal-manage-issue');
     alert(`Request ${irNumber} updated successfully.`);
     loadAdminPage();
@@ -1325,7 +1572,7 @@ function openBallotModal(pollId) {
     openModal('modal-submit-vote');
 }
 
-function handleVoteSubmit(event) {
+async function handleVoteSubmit(event) {
     event.preventDefault();
 
     const pollId = document.getElementById('ballot-poll-id').value;
@@ -1351,8 +1598,7 @@ function handleVoteSubmit(event) {
         timestamp: new Date().toISOString()
     };
 
-    votes.push(newVote);
-    saveVotesToStorage();
+    await saveVoteRecord(newVote);
 
     closeModal('modal-submit-vote');
     alert("Thank you. Your vote has been recorded.");
@@ -1396,6 +1642,114 @@ function handleThemeChange() {
 // --- Quick Login Sync Helper ---
 function syncDemoLoginFields() {
     // Simulator removed per user request
+}
+
+
+// --- Admin Cloud Settings & Status Shortcut ---
+function openCloudSettingsShortcut() {
+    const roleSelect = document.getElementById('role-select');
+    if (roleSelect && roleSelect.value === 'admin') {
+        switchTab('admin');
+        document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+        const tabBtn = document.querySelector('[data-admin-tab="admin-settings"]');
+        const tabContent = document.getElementById('admin-tab-admin-settings');
+        if (tabBtn) tabBtn.classList.add('active');
+        if (tabContent) tabContent.classList.add('active');
+    } else {
+        openAdminAuthModal();
+    }
+}
+
+function initCloudSettingsUI() {
+    const form = document.getElementById('firebase-config-form');
+    if (!form) return;
+
+    // Prepopulate inputs if configuration exists
+    const config = (typeof getActiveFirebaseConfig === 'function') ? getActiveFirebaseConfig() : null;
+    if (config) {
+        if (config.projectId) document.getElementById('fb-project-id').value = config.projectId;
+        if (config.apiKey) document.getElementById('fb-api-key').value = config.apiKey;
+        if (config.authDomain) document.getElementById('fb-auth-domain').value = config.authDomain || '';
+        if (config.appId) document.getElementById('fb-app-id').value = config.appId || '';
+    }
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const jsonPaste = document.getElementById('fb-json-paste').value.trim();
+        let newConfig = {};
+
+        if (jsonPaste) {
+            try {
+                newConfig = JSON.parse(jsonPaste);
+            } catch (err) {
+                alert("Invalid JSON format in the paste box. Please verify the syntax or use the individual fields.");
+                return;
+            }
+        } else {
+            const projId = document.getElementById('fb-project-id').value.trim();
+            const apiKey = document.getElementById('fb-api-key').value.trim();
+            const authDom = document.getElementById('fb-auth-domain').value.trim() || `${projId}.firebaseapp.com`;
+            const appId = document.getElementById('fb-app-id').value.trim();
+
+            newConfig = {
+                projectId: projId,
+                apiKey: apiKey,
+                authDomain: authDom,
+                appId: appId,
+                storageBucket: `${projId}.appspot.com`
+            };
+        }
+
+        if (!newConfig.projectId || !newConfig.apiKey) {
+            alert("Firebase Project ID and API Key are required to enable cloud synchronization.");
+            return;
+        }
+
+        localStorage.setItem('jfk_ops_firebase_config', JSON.stringify(newConfig));
+        alert("Firebase Cloud Database configured! Connecting to live Firestore...");
+        initDataSync();
+    });
+
+    const testBtn = document.getElementById('btn-test-cloud-connection');
+    if (testBtn) {
+        testBtn.addEventListener('click', async () => {
+            const feedback = document.getElementById('cloud-config-feedback');
+            feedback.classList.remove('hidden', 'alert-danger', 'alert-success', 'alert-info');
+            feedback.className = 'mt-3 alert alert-info';
+            feedback.textContent = 'Testing connection to Google Cloud Firestore...';
+
+            if (!isCloudConnected || !db) {
+                feedback.className = 'mt-3 alert alert-danger';
+                feedback.textContent = 'Error: Cloud database is not connected. Enter your Firebase Project ID and API Key above, then click "Save & Connect".';
+                return;
+            }
+
+            try {
+                await db.collection('_health').doc('ping').set({
+                    ping: Date.now(),
+                    system: 'JFK OPS AVC System',
+                    verifiedBy: 'AVC Admin'
+                });
+                feedback.className = 'mt-3 alert alert-success';
+                feedback.textContent = '✅ Connection Verified! Firestore read/write permissions are active. All 30 crew members will share real-time updates on your link.';
+            } catch (err) {
+                feedback.className = 'mt-3 alert alert-danger';
+                feedback.textContent = `Connection failed: ${err.message}. Please verify your Project ID, API Key, and Firestore security rules.`;
+            }
+        });
+    }
+
+    const disconnectBtn = document.getElementById('btn-disconnect-cloud');
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener('click', () => {
+            if (confirm("Switch back to Local Storage mode? Data will only be saved in this browser.")) {
+                localStorage.removeItem('jfk_ops_firebase_config');
+                alert("Cloud database disconnected. The system will operate in local mode.");
+                location.reload();
+            }
+        });
+    }
 }
 
 // --- Bind all Event Listeners ---
@@ -1471,7 +1825,10 @@ function bindEvents() {
 
 
 
-    // 6. Admin subtab toggles
+    // 6. Cloud Database Settings
+    initCloudSettingsUI();
+
+    // 7. Admin subtab toggles
     document.querySelectorAll('.admin-tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
@@ -1526,7 +1883,7 @@ function initCurrentQuarterSelector() {
 
 // --- App Initialization ---
 window.addEventListener('DOMContentLoaded', () => {
-    loadDataFromStorage();
+    initDataSync();
     bindEvents();
     initCurrentQuarterSelector();
     
