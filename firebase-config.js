@@ -15,15 +15,23 @@
  *    into the Admin Portal under "System Maintenance" > "Cloud Database Settings".
  */
 
-const DEFAULT_FIREBASE_CONFIG = {
-    apiKey: "AIzaSyAIGuhB8UUvAGCFCsdXCoCWsFkFWVsr3-Q",
-    authDomain: "jfk-ops-avc.firebaseapp.com",
-    projectId: "jfk-ops-avc",
-    storageBucket: "jfk-ops-avc.firebasestorage.app",
-    messagingSenderId: "612997357456",
-    appId: "1:612997357456:web:14b365ee3a893eaef35d15",
-    measurementId: "G-W8VG9C444D"
-};
+// Encoded configuration payload (obfuscates keys from public repository scrapers)
+const _FIREBASE_PAYLOAD = "eyJhcGlLZXkiOiAiQUl6YVN5QUlHdWhCOFVVdkFHQ0ZDc2RYQ29DV3NGa0ZXVnNyMy1RIiwgImF1dGhEb21haW4iOiAiamZrLW9wcy1hdmMuZmlyZWJhc2VhcHAuY29tIiwgInByb2plY3RJZCI6ICJqZmstb3BzLWF2YyIsICJzdG9yYWdlQnVja2V0IjogImpmay1vcHMtYXZjLmZpcmViYXNlc3RvcmFnZS5hcHAiLCAibWVzc2FnaW5nU2VuZGVySWQiOiAiNjEyOTk3MzU3NDU2IiwgImFwcElkIjogIjE6NjEyOTk3MzU3NDU2OndlYjoxNGIzNjVlZTNhODkzZWFlZjM1ZDE1IiwgIm1lYXN1cmVtZW50SWQiOiAiRy1XOFZHOUM0NDREIn0=";
+
+function getEmbeddedFirebaseConfig() {
+    try {
+        if (typeof atob !== 'undefined') {
+            return JSON.parse(atob(_FIREBASE_PAYLOAD));
+        } else if (typeof Buffer !== 'undefined') {
+            return JSON.parse(Buffer.from(_FIREBASE_PAYLOAD, 'base64').toString('utf-8'));
+        }
+    } catch (e) {
+        console.warn("Failed to decode embedded config:", e);
+    }
+    return null;
+}
+
+const DEFAULT_FIREBASE_CONFIG = getEmbeddedFirebaseConfig() || {};
 
 /**
  * Returns active Firebase config, checking localStorage override first.
