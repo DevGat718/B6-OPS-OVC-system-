@@ -219,6 +219,18 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="form-group mt-3" style="background:var(--bg-primary); padding:12px 14px; border-radius:var(--border-radius); border:1px solid var(--border-color);">
+                            <label class="checkbox-label" style="font-weight:600; color:var(--text-color); cursor:pointer; display:flex; align-items:flex-start; gap:10px;">
+                                <input type="checkbox" id="submit-anonymous" style="margin-top:2px;">
+                                <span>
+                                    <strong>Submit Anonymously</strong>
+                                    <small style="display:block; color:var(--text-muted); font-weight:normal; margin-top:2px; font-size:12.5px;">
+                                        Your Name and Employee ID will be hidden from the public Open Issues board and coordinator lists. Station Leadership & AVC Admins in the Admin Portal can still view your details for verification and follow-up.
+                                    </small>
+                                </span>
+                            </label>
+                        </div>
                     </fieldset>
 
                     <!-- Request Details Section -->
@@ -463,8 +475,38 @@
                 <div class="update-selectors-row no-print">
                     <label for="report-year-select" style="font-size:12.5px; margin-right:6px; color:var(--text-muted);">Year:</label>
                     <select id="report-year-select" class="theme-selector mr-3" style="min-width: 80px; padding: 4px 8px; border-radius: 4px;">
-                        <option value="2026">2026</option>
+                        <option value="2055">2055</option>
+                        <option value="2054">2054</option>
+                        <option value="2053">2053</option>
+                        <option value="2052">2052</option>
+                        <option value="2051">2051</option>
+                        <option value="2050">2050</option>
+                        <option value="2049">2049</option>
+                        <option value="2048">2048</option>
+                        <option value="2047">2047</option>
+                        <option value="2046">2046</option>
+                        <option value="2045">2045</option>
+                        <option value="2044">2044</option>
+                        <option value="2043">2043</option>
+                        <option value="2042">2042</option>
+                        <option value="2041">2041</option>
+                        <option value="2040">2040</option>
+                        <option value="2039">2039</option>
+                        <option value="2038">2038</option>
+                        <option value="2037">2037</option>
+                        <option value="2036">2036</option>
+                        <option value="2035">2035</option>
+                        <option value="2034">2034</option>
+                        <option value="2033">2033</option>
+                        <option value="2032">2032</option>
+                        <option value="2031">2031</option>
+                        <option value="2030">2030</option>
+                        <option value="2029">2029</option>
+                        <option value="2028">2028</option>
+                        <option value="2027">2027</option>
+                        <option value="2026" selected>2026</option>
                         <option value="2025">2025</option>
+                        <option value="2024">2024</option>
                     </select>
                     
                     <label for="report-quarter-select" style="font-size:12.5px; margin-right:6px; color:var(--text-muted);">Quarter:</label>
@@ -477,6 +519,9 @@
                     <button class="btn btn-outline btn-print" onclick="window.print()">
                         <svg viewBox="0 0 24 24" class="btn-icon"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
                         Print/Export PDF
+                    </button>
+                    <button class="btn btn-primary" onclick="draftQuarterlyEmailUpdate()" style="white-space:nowrap;">
+                        ✉️ Draft as Email Update
                     </button>
                 </div>
             </div>
@@ -505,6 +550,9 @@
                 <!-- Admin Navigation / Tabs -->
                 <div class="admin-tabs">
                     <button class="admin-tab-btn active" data-admin-tab="admin-issues">Issue Requests Master Table</button>
+                    <button class="admin-tab-btn" data-admin-tab="admin-notes">Meeting Notes</button>
+                    <button class="admin-tab-btn" data-admin-tab="admin-sop">Ops SOP & Checklist</button>
+                    <button class="admin-tab-btn" data-admin-tab="admin-email">Email Builder</button>
                     <button class="admin-tab-btn" data-admin-tab="admin-polls">Poll & Vote Builder</button>
                     <button class="admin-tab-btn" data-admin-tab="admin-voters">Confidential Voter Log</button>
                     <button class="admin-tab-btn" data-admin-tab="admin-settings">System Maintenance</button>
@@ -572,7 +620,540 @@
                     </div>
                 </div>
 
-                <!-- Admin Tab 2: Polls & Vote Builder -->
+                <!-- Admin Tab 2: Meeting Notes (Linked to IRs) -->
+                <div class="admin-tab-content" id="admin-tab-admin-notes">
+                    <div class="card mb-4">
+                        <div class="card-header header-with-filters">
+                            <div>
+                                <h3 class="card-title">AVC Committee Meeting Notes & Leadership Logs</h3>
+                                <p class="text-muted mt-1" style="font-size:13px;">Document leadership discussions, committee deliberations, and action items linked directly to Issue Requests.</p>
+                            </div>
+                            <button class="btn btn-primary" id="btn-open-create-note" style="white-space:nowrap;">
+                                + Add Meeting Note
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="admin-filter-bar mb-3">
+                                <input type="text" id="admin-notes-search" placeholder="Search notes, attendees, topics...">
+                                <select id="admin-filter-notes-ir">
+                                    <option value="all">All Linked IRs</option>
+                                    <!-- Dynamic IR options populated by JS -->
+                                </select>
+                            </div>
+
+                            <div class="meeting-notes-grid" id="admin-meeting-notes-list">
+                                <!-- Dynamic cards loaded from JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Tab 3: Ops SOP & Post-Meeting Execution Checklist -->
+                <div class="admin-tab-content" id="admin-tab-admin-sop">
+                    
+                    <!-- 1. POST-MEETING EXECUTION CHECKLIST (Guide for Success) -->
+                    <div class="card sop-checklist-card" id="sop-sec-checklist">
+                        <div class="card-header header-with-filters">
+                            <div>
+                                <h3 class="card-title" style="display:flex; align-items:center; gap:8px;">
+                                    <span>📋</span> Post-Meeting Execution Checklist
+                                </h3>
+                                <p class="text-muted mt-1" style="font-size:13px;">
+                                    Visual guide for success: track and check off progress across all 10 post-meeting execution tasks from leadership meeting to coordinator broadcast.
+                                </p>
+                            </div>
+                            <div class="sop-checklist-header-actions">
+                                <span class="badge badge-accent" id="sop-checklist-counter-badge" style="font-size:12.5px; padding:6px 12px;">
+                                    0 / 10 Completed (0%)
+                                </span>
+                                <button type="button" class="btn btn-sm btn-outline" id="btn-sop-reset-checklist" title="Clear checked items to start a fresh cycle">
+                                    🔄 Reset for New Month
+                                </button>
+                                <button type="button" class="btn btn-sm btn-secondary" id="btn-sop-mark-all" title="Mark all steps as completed">
+                                    ✓ Mark All Done
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Progress Bar & Phase Indicators -->
+                            <div class="sop-progress-wrapper">
+                                <div class="sop-progress-meta">
+                                    <span style="color:#00205b;">Monthly Post-Meeting Workflow Progress</span>
+                                    <span id="sop-progress-percent-text" style="color:#0284c7; font-weight:700;">0% Completed</span>
+                                </div>
+                                <div class="sop-progress-track">
+                                    <div class="sop-progress-bar-fill" id="sop-progress-fill" style="width: 0%;"></div>
+                                </div>
+                                <div class="sop-cycle-phases-bar">
+                                    <div class="sop-phase-indicator" id="phase-ind-1">
+                                        <span>📝</span> Days 1–2: Notes
+                                    </div>
+                                    <div class="sop-phase-indicator" id="phase-ind-2">
+                                        <span>💻</span> Days 2–3: Portal
+                                    </div>
+                                    <div class="sop-phase-indicator" id="phase-ind-3">
+                                        <span>✍️</span> Days 3–5: Draft
+                                    </div>
+                                    <div class="sop-phase-indicator" id="phase-ind-4">
+                                        <span>🔍</span> Days 5–7: Review
+                                    </div>
+                                    <div class="sop-phase-indicator" id="phase-ind-5">
+                                        <span>🚀</span> Days 7–10: Publish
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Interactive Checklist Items (Loaded and managed dynamically) -->
+                            <div class="sop-checklist-items" id="sop-checklist-items-list">
+                                <!-- Populated by renderSOPChecklist() in app.js -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. QUICK SOP SECTION JUMP NAVIGATION -->
+                    <div class="sop-nav-pills">
+                        <a href="#sop-sec-checklist" class="sop-nav-btn">📋 Execution Checklist</a>
+                        <a href="#sop-sec-1" class="sop-nav-btn">👥 1. Meeting Structure</a>
+                        <a href="#sop-sec-2" class="sop-nav-btn">⏱️ 2. Monthly Cycle</a>
+                        <a href="#sop-sec-3" class="sop-nav-btn">🎖️ 3. Responsibility Matrix</a>
+                        <a href="#sop-sec-4" class="sop-nav-btn">📦 4. Required Outputs</a>
+                        <a href="#sop-sec-5" class="sop-nav-btn">🎯 5. Reporting Standards</a>
+                        <a href="#sop-sec-6" class="sop-nav-btn">📢 6. Communication Channels</a>
+                        <a href="#sop-sec-7" class="sop-nav-btn">📧 7. Monthly Email Outline</a>
+                        <a href="#sop-sec-10" class="sop-nav-btn">🔄 10. Continuous Improvement</a>
+                    </div>
+
+                    <!-- 3. OFFICIAL SOP DOCUMENT VIEWER -->
+                    <div class="sop-doc-container">
+                        
+                        <!-- Masthead -->
+                        <div class="sop-doc-masthead">
+                            <div class="sop-doc-badges">
+                                <span class="badge badge-accent">JFK Terminal 5 | JetBlue Airways</span>
+                                <span class="badge badge-primary">Airport Values Committee (AVC)</span>
+                                <span class="badge badge-outline">Working SOP | Team Review</span>
+                            </div>
+                            <h2 class="sop-doc-title">JFK OPS Monthly Operations & Communications SOP</h2>
+                            <p class="sop-doc-subtitle">
+                                Monthly meeting, follow-up, portal and coordinator communication workflow
+                            </p>
+                            <div class="sop-purpose-callout">
+                                <strong>Purpose:</strong> Establish a reliable monthly process for collecting coordinator concerns, presenting them to OPS leadership, recording responses, maintaining accurate VC Portal issue statuses, assigning follow-up responsibilities, and keeping coordinators informed. This document is a proposed team workflow, not an official JetBlue policy.
+                            </div>
+                        </div>
+
+                        <!-- Section 1: Meeting Structure -->
+                        <div class="sop-section-block" id="sop-sec-1">
+                            <h3 class="sop-section-heading">
+                                <span class="heading-num">1</span> Meeting Structure
+                            </h3>
+                            <div class="sop-grid-3">
+                                <div class="sop-content-card">
+                                    <h4>
+                                        <span>Main OPS AVC × Leadership</span>
+                                        <span class="badge badge-primary">Primary Forum</span>
+                                    </h4>
+                                    <p><strong>Cadence & Attendees:</strong><br>Second Friday each month • Devin, Rob, Jess, Chris Perri and other leadership as applicable.</p>
+                                    <p><strong>Purpose:</strong><br>Primary decision/discussion forum: present prioritized coordinator issues, discuss requests, capture responses, assign next steps.</p>
+                                </div>
+                                <div class="sop-content-card">
+                                    <h4>
+                                        <span>Devin × Perri One-on-One</span>
+                                        <span class="badge badge-outline">Flexible Sync</span>
+                                    </h4>
+                                    <p><strong>Cadence & Attendees:</strong><br>Tentative / flexible • Immediately after main meeting, following Friday, last Friday, or another agreed date.</p>
+                                    <p><strong>Purpose:</strong><br>Discuss outstanding clarifications, sensitive or detailed topics, follow-up questions and matters needing additional direction.</p>
+                                </div>
+                                <div class="sop-content-card">
+                                    <h4>
+                                        <span>Monthly Coordinator Update</span>
+                                        <span class="badge badge-accent">Department Broadcast</span>
+                                    </h4>
+                                    <p><strong>Cadence & Attendees:</strong><br>Target: 7–10 days after main meeting (Timing may vary with verification).</p>
+                                    <p><strong>Purpose:</strong><br>Distribute confirmed information via department email and the VC Portal; do not wait for an optional one-on-one unless specific information depends on it.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Standard Monthly Cycle -->
+                        <div class="sop-section-block" id="sop-sec-2">
+                            <h3 class="sop-section-heading">
+                                <span class="heading-num">2</span> Standard Monthly Cycle
+                            </h3>
+                            <div class="table-responsive">
+                                <table class="sop-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 180px;">When</th>
+                                            <th>Task</th>
+                                            <th style="width: 200px;">Proposed Owner</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>3–5 days before meeting</strong></td>
+                                            <td>Review new and existing portal issues, votes and unresolved items; prioritize agenda and prepare questions.</td>
+                                            <td><span class="sop-owner-pill">Devin + Rob</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Day 0 – second Friday</strong></td>
+                                            <td>Hold main AVC x Leadership meeting; capture discussion, decisions, open questions and owners.</td>
+                                            <td><span class="sop-owner-pill">Devin, Rob, Jess</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Days 1–2</strong></td>
+                                            <td>Consolidate notes; separate confirmed decisions from pending questions; assign follow-ups.</td>
+                                            <td><span class="sop-owner-pill">Jess + Devin</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Days 2–3</strong></td>
+                                            <td>Update portal statuses, internal notes, owners and next review dates based on verified outcomes.</td>
+                                            <td><span class="sop-owner-pill">Rob</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Days 3–5</strong></td>
+                                            <td>Draft coordinator recap and, if helpful, prepare monthly AVC update graphic.</td>
+                                            <td><span class="sop-owner-pill">Devin</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Days 5–7</strong></td>
+                                            <td>Fact-check, review wording and confirm what may be shared with the department.</td>
+                                            <td><span class="sop-owner-pill">Jess + Devin; leadership as needed</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Days 7–10</strong></td>
+                                            <td>Publish coordinator email and matching portal update, once confirmed.</td>
+                                            <td><span class="sop-owner-pill">Devin</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>When scheduled</strong></td>
+                                            <td>Hold Devin x Perri one-on-one; record new follow-ups and issue corrections or supplemental update if needed.</td>
+                                            <td><span class="sop-owner-pill">Devin</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="sop-rule-banner blue-info">
+                                <span class="rule-icon">⏱️</span>
+                                <div>
+                                    <strong>Scheduling rule:</strong> The second-Friday leadership meeting drives the cycle. The one-on-one is a flexible secondary checkpoint, not a prerequisite for publishing already-confirmed updates.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Responsibility Matrix -->
+                        <div class="sop-section-block" id="sop-sec-3">
+                            <h3 class="sop-section-heading">
+                                <span class="heading-num">3</span> Responsibility Matrix
+                            </h3>
+                            <div class="sop-grid-3">
+                                <!-- Devin -->
+                                <div class="sop-content-card">
+                                    <div class="sop-role-avatar">D</div>
+                                    <h4 class="sop-role-title">Devin</h4>
+                                    <div class="sop-role-subtitle">AVC Lead / Leadership Liaison</div>
+                                    <p><strong>Primary Responsibility:</strong><br>Coordinate agenda and leadership discussions; own one-on-one follow-up; lead messaging.</p>
+                                    <div class="sop-deliverables-box">
+                                        <strong>Deliverables:</strong> Final agenda, monthly email, publication approval.
+                                    </div>
+                                </div>
+
+                                <!-- Rob -->
+                                <div class="sop-content-card">
+                                    <div class="sop-role-avatar" style="background:#0284c7;">R</div>
+                                    <h4 class="sop-role-title">Rob</h4>
+                                    <div class="sop-role-subtitle">Portal / Issue Coordination</div>
+                                    <p><strong>Primary Responsibility:</strong><br>Review incoming requests, prepare issue list, manage status changes and outstanding follow-ups.</p>
+                                    <div class="sop-deliverables-box">
+                                        <strong>Deliverables:</strong> Current portal records, status updates, action flags.
+                                    </div>
+                                </div>
+
+                                <!-- Jess -->
+                                <div class="sop-content-card">
+                                    <div class="sop-role-avatar" style="background:#0d9488;">J</div>
+                                    <h4 class="sop-role-title">Jess</h4>
+                                    <div class="sop-role-subtitle">Documentation / Review</div>
+                                    <p><strong>Primary Responsibility:</strong><br>Record meeting notes, consolidate decisions and check recap for completeness and accuracy.</p>
+                                    <div class="sop-deliverables-box">
+                                        <strong>Deliverables:</strong> Meeting summary, action log, reviewed email draft.
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-muted mt-2" style="font-size:12.5px; font-style:italic;">
+                                Assignments are proposed and should be confirmed with Rob and Jess based on availability and strengths.
+                            </p>
+                        </div>
+
+                        <!-- Section 4: Required Meeting Outputs -->
+                        <div class="sop-section-block" id="sop-sec-4">
+                            <h3 class="sop-section-heading">
+                                <span class="heading-num">4</span> Required Meeting Outputs
+                            </h3>
+                            <p class="text-muted mb-3" style="font-size:13.5px;">Every main leadership meeting should produce four usable records:</p>
+                            <div class="sop-grid-2">
+                                <div class="sop-content-card">
+                                    <h4>
+                                        <span>1. Meeting Recap</span>
+                                        <span class="badge badge-primary">Record</span>
+                                    </h4>
+                                    <p>Topics discussed, leadership feedback, decisions, unresolved questions and any restrictions on sharing.</p>
+                                </div>
+                                <div class="sop-content-card">
+                                    <h4>
+                                        <span>2. Action Items</span>
+                                        <span class="badge badge-accent">Execution</span>
+                                    </h4>
+                                    <p>Specific next step, responsible person, follow-up date and completion criteria.</p>
+                                </div>
+                                <div class="sop-content-card">
+                                    <h4>
+                                        <span>3. VC Portal Updates</span>
+                                        <span class="badge badge-success">System State</span>
+                                    </h4>
+                                    <p>Accurate issue status, concise progress note and next review date for each relevant request.</p>
+                                </div>
+                                <div class="sop-content-card">
+                                    <h4>
+                                        <span>4. Communication Notes</span>
+                                        <span class="badge badge-outline">Messaging</span>
+                                    </h4>
+                                    <p>Items ready for coordinator publication versus items requiring clarification or approval.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 5: Issue Reporting Standards -->
+                        <div class="sop-section-block" id="sop-sec-5">
+                            <h3 class="sop-section-heading">
+                                <span class="heading-num">5</span> Issue Reporting Standards
+                            </h3>
+                            <p class="text-muted mb-3" style="font-size:13.5px;">
+                                Use the existing VC Portal as the single source of truth; do not create a duplicate issue database. Preserve each issue's identifier and link the meeting notes to the corresponding portal record.
+                            </p>
+                            <div class="table-responsive">
+                                <table class="sop-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 220px;">Record Field</th>
+                                            <th>What to Capture</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Issue / ID</strong></td>
+                                            <td>Exact issue name and portal identifier (e.g. <code>IR-1042</code>).</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Leadership discussion</strong></td>
+                                            <td>Summary of what was presented and any response received.</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Current status</strong></td>
+                                            <td>Use the portal's existing approved status labels consistently.</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Next action / owner</strong></td>
+                                            <td>What must happen next, and who is accountable.</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Follow-up date</strong></td>
+                                            <td>When the team expects to check for progress, not a promised completion date.</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Public summary</strong></td>
+                                            <td>Clear coordinator-facing wording, after any required confirmation.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="sop-rule-banner amber-warning">
+                                <span class="rule-icon">⚠️</span>
+                                <div>
+                                    <strong>Accuracy rule:</strong> 'Discussed' is not 'approved.' Label proposals, pending responses, approved changes, implementation and completed work distinctly. Do not publish sensitive personnel details, unverified claims or private one-on-one discussions.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 6: Coordinator Communication Channels -->
+                        <div class="sop-section-block" id="sop-sec-6">
+                            <h3 class="sop-section-heading">
+                                <span class="heading-num">6</span> Coordinator Communication Channels
+                            </h3>
+                            <div class="sop-grid-3">
+                                <div class="sop-content-card">
+                                    <h4>
+                                        <span>Monthly AVC Update</span>
+                                        <span class="badge badge-accent">Monthly</span>
+                                    </h4>
+                                    <p><strong>When to use:</strong><br>Once per month, normally 7–10 days after the main meeting.</p>
+                                    <p><strong>What belongs there:</strong><br>What was discussed, leadership feedback, progress, pending items and next steps.</p>
+                                </div>
+                                <div class="sop-content-card">
+                                    <h4>
+                                        <span>Special AVC / Leadership Notice</span>
+                                        <span class="badge badge-primary">Time-Sensitive</span>
+                                    </h4>
+                                    <p><strong>When to use:</strong><br>Only when important developments should not wait for the monthly recap.</p>
+                                    <p><strong>What belongs there:</strong><br>Significant approved changes, major progress or time-sensitive information.</p>
+                                </div>
+                                <div class="sop-content-card">
+                                    <h4>
+                                        <span>Operations Center Advisory Notice (OCAN)</span>
+                                        <span class="badge badge-outline">Advisory</span>
+                                    </h4>
+                                    <p><strong>When to use:</strong><br>Separately, when a specific operational concern needs interdepartmental attention.</p>
+                                    <p><strong>What belongs there:</strong><br>Operational issue details, requested action, relevant departments and acknowledgement / response.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 7: Monthly Email Outline -->
+                        <div class="sop-section-block" id="sop-sec-7">
+                            <h3 class="sop-section-heading">
+                                <span class="heading-num">7</span> Monthly Email Outline & Workflow
+                            </h3>
+                            <div class="sop-content-card">
+                                <p style="font-size:14px; margin-bottom:12px;">
+                                    <strong>Subject Line:</strong> <code>JFK OPS AVC | Monthly Department Update - [Month Year]</code>
+                                </p>
+                                <ul style="padding-left:20px; font-size:13.5px; line-height:1.7; color:var(--text-secondary); margin-bottom:16px;">
+                                    <li><strong>Opening:</strong> Thank coordinators for their feedback and briefly explain the month's AVC activity.</li>
+                                    <li><strong>01 - What We Discussed:</strong> Main concerns and proposals presented to leadership.</li>
+                                    <li><strong>02 - Leadership Feedback:</strong> Confirmed responses, decisions and clarifications.</li>
+                                    <li><strong>03 - Progress & Wins:</strong> Implemented improvements and ongoing work.</li>
+                                    <li><strong>04 - Pending Items:</strong> Requests awaiting review, response or additional action.</li>
+                                    <li><strong>05 - What's Next:</strong> Priorities, expected follow-up and a reminder to use the VC Portal.</li>
+                                    <li><strong>Close & Signature:</strong> Thank coordinators for participating; invite additional feedback and include the portal link with official committee sign-off.</li>
+                                </ul>
+                                <div>
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="switchAdminSubTab('admin-email')">
+                                        Draft Update in Email Builder Tab →
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 10: Review and Continuous Improvement -->
+                        <div class="sop-section-block" id="sop-sec-10">
+                            <h3 class="sop-section-heading">
+                                <span class="heading-num">10</span> Review and Continuous Improvement
+                            </h3>
+                            <p class="text-muted mb-3" style="font-size:13.5px;">
+                                After each monthly cycle, check whether updates were sent on time, whether issue records match meeting outcomes, whether coordinators received clear answers, and whether outstanding requests have owners and follow-up dates. Adjust workload assignments or the publication target if needed.
+                            </p>
+
+                            <div class="sop-rule-banner navy-principle">
+                                <span class="rule-icon">💡</span>
+                                <div>
+                                    <strong>Operating principle:</strong> No issue should disappear because it remains unresolved. Maintain its status, record the next step and report meaningful progress or continued review without implying a decision has been made.
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-4 pt-3" style="border-top:1px solid var(--border-color);">
+                                <p style="font-size:13.5px; color:#00205b; font-weight:750; margin-bottom:4px;">
+                                    JFK OPS AVC • People – Communication – Progress
+                                </p>
+                                <p style="font-size:12px; color:var(--text-muted); margin:0;">
+                                    <em>Same Crew. Higher Standards.</em> • JFK Terminal 5 | JetBlue Airways
+                                </p>
+                            </div>
+                        </div>
+
+                    </div> <!-- end sop-doc-container -->
+
+                </div>
+
+                <!-- Admin Tab 4: Email Builder Template -->
+                <div class="admin-tab-content" id="admin-tab-admin-email">
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">AVC Department Email Builder</h3>
+                                <p class="text-muted mt-1" style="font-size:13px;">Draft, preview, and format official leadership notices, monthly updates, and custom announcements.</p>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Template Selection Cards -->
+                            <div class="email-template-selector mb-4">
+                                <button type="button" class="email-tpl-btn active" data-tpl="special-notice">
+                                    <span class="tpl-icon">🚨</span>
+                                    <span class="tpl-meta">
+                                        <strong>1. Special Notice (AVC × Leadership)</strong>
+                                        <small>Joint leadership updates, approvals & key developments</small>
+                                    </span>
+                                </button>
+                                <button type="button" class="email-tpl-btn" data-tpl="monthly-update">
+                                    <span class="tpl-icon">📅</span>
+                                    <span class="tpl-meta">
+                                        <strong>2. Monthly Department Update</strong>
+                                        <small>Monthly review of concerns, discussions & completed items</small>
+                                    </span>
+                                </button>
+                                <button type="button" class="email-tpl-btn" data-tpl="custom-canvas">
+                                    <span class="tpl-icon">✏️</span>
+                                    <span class="tpl-meta">
+                                        <strong>3. Custom / Blank Canvas</strong>
+                                        <small>Create your own announcement with branded signature</small>
+                                    </span>
+                                </button>
+                            </div>
+
+                            <!-- Optional Dynamic IR Loader Helper -->
+                            <div class="email-ir-loader-bar mb-4" style="background:var(--bg-primary); padding:12px 16px; border-radius:var(--border-radius); border:1px solid var(--border-color); display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                                <span style="font-size:13px; font-weight:600; color:var(--primary-color);">Quick-Import from Issue Request:</span>
+                                <select id="email-ir-select" style="max-width:320px; font-size:13px; padding:6px 10px;">
+                                    <option value="">-- Select IR to Auto-Fill Fields --</option>
+                                    <!-- Dynamic IR options -->
+                                </select>
+                                <button type="button" class="btn btn-xs btn-outline" id="btn-apply-ir-to-email">Auto-Fill Selected IR</button>
+                                <span class="text-muted" style="font-size:12px;">(Pulls topic, summary, response & next steps)</span>
+                            </div>
+
+                            <!-- Split Screen Layout: Editor Form (Left) & Live Preview (Right) -->
+                            <div class="email-builder-workspace">
+                                <div class="email-editor-panel">
+                                    <form id="email-builder-form" class="aviation-form">
+                                        <div id="email-form-fields-container">
+                                            <!-- Dynamic fields generated based on selected template -->
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="email-preview-panel">
+                                    <div class="email-preview-header-bar">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <span style="font-size:14px; font-weight:700; color:var(--navy-dark);">Live Email Preview</span>
+                                            <span class="badge badge-accent" id="email-preview-mode-badge" style="font-size:10px;">Special Notice</span>
+                                        </div>
+                                        <div class="email-preview-actions">
+                                            <button type="button" class="btn btn-xs btn-primary" id="btn-copy-email-text" title="Copy clean plain text for Outlook">
+                                                📋 Copy Email Text
+                                            </button>
+                                            <button type="button" class="btn btn-xs btn-outline" id="btn-copy-email-html" title="Copy formatted rich text">
+                                                📄 Copy Rich HTML
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="email-mockup-window">
+                                        <div class="email-mockup-meta">
+                                            <div><strong>To:</strong> JFK OPS Coordinators & Leadership</div>
+                                            <div><strong>Subject:</strong> <span id="email-preview-subject-text">[Subject]</span></div>
+                                        </div>
+                                        <div class="email-mockup-body" id="email-preview-rendered-body">
+                                            <!-- Rendered live email message -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Tab 4: Polls & Vote Builder -->
                 <div class="admin-tab-content" id="admin-tab-admin-polls">
                     <div class="admin-polls-layout">
                         <!-- Create Poll Form -->
@@ -829,18 +1410,110 @@
         </div>
     </div>
 
-    <!-- MODAL 2: MANAGE ISSUE (Admin Only) -->
+    <!-- MODAL 2: MANAGE & EDIT ISSUE (Admin Only) -->
     <div class="modal" id="modal-manage-issue">
-        <div class="modal-dialog">
+        <div class="modal-dialog" style="max-width: 720px;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title" id="modal-manage-ir-number">Manage Request IR-2026-001</h3>
+                    <h3 class="modal-title" id="modal-manage-ir-number">Edit & Manage Request IR-2026-001</h3>
                     <button class="close-modal" onclick="closeModal('modal-manage-issue')">&times;</button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
                     <form id="admin-manage-issue-form" class="aviation-form">
                         <input type="hidden" id="manage-issue-idx">
                         
+                        <!-- Section A: Core Issue Details -->
+                        <h4 style="font-size:14px; font-weight:700; color:var(--primary-color); border-bottom:1px solid var(--border-color); padding-bottom:6px; margin-bottom:14px;">
+                            Core Issue Details
+                        </h4>
+
+                        <div class="form-group">
+                            <label for="manage-title">Issue Title <span class="required">*</span></label>
+                            <input type="text" id="manage-title" required placeholder="Brief, clear headline of the issue">
+                        </div>
+
+                        <div class="form-grid-2col">
+                            <div class="form-group">
+                                <label for="manage-category">Category <span class="required">*</span></label>
+                                <select id="manage-category" required>
+                                    <option value="Compensation">Compensation</option>
+                                    <option value="Training">Training</option>
+                                    <option value="Policy / Procedure">Policy / Procedure</option>
+                                    <option value="Facilities">Facilities</option>
+                                    <option value="Scheduling">Scheduling</option>
+                                    <option value="Staffing">Staffing</option>
+                                    <option value="Communication">Communication</option>
+                                    <option value="Technology / Systems">Technology / Systems</option>
+                                    <option value="Workplace Quality">Workplace Quality</option>
+                                    <option value="Operational Process">Operational Process</option>
+                                    <option value="AO / GO / OPS Coordination">AO / GO / OPS Coordination</option>
+                                    <option value="IAT">IAT</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="manage-priority">Priority</label>
+                                <select id="manage-priority">
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                    <option value="Urgent">Urgent</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-3col mt-2">
+                            <div class="form-group">
+                                <label for="manage-submitter-name">Submitter Name</label>
+                                <input type="text" id="manage-submitter-name" placeholder="John Doe">
+                            </div>
+                            <div class="form-group">
+                                <label for="manage-submitter-id">Crewmember ID</label>
+                                <input type="text" id="manage-submitter-id" placeholder="CM12345">
+                            </div>
+                            <div class="form-group">
+                                <label for="manage-submitter-shift">Shift</label>
+                                <select id="manage-submitter-shift">
+                                    <option value="AM">AM</option>
+                                    <option value="PM">PM</option>
+                                    <option value="MID">MID</option>
+                                    <option value="Rotating">Rotating</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label class="checkbox-label" style="font-weight:600; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px;">
+                                <input type="checkbox" id="manage-is-anonymous">
+                                <span>🔒 Anonymous Submission (Hide Submitter Name & ID from public Open Issues & crew views)</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label for="manage-description">What is currently happening? (Description)</label>
+                            <textarea id="manage-description" rows="3" placeholder="Explain the current operational situation..."></textarea>
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label for="manage-impact">How does this affect operations? (Impact)</label>
+                            <textarea id="manage-impact" rows="2" placeholder="Operational delays, workload strain, safety risk..."></textarea>
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label for="manage-examples">Specific Dates, Flights, or Examples</label>
+                            <input type="text" id="manage-examples" placeholder="e.g. Flight B6 230 on 10/12, gates 14-16">
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label for="manage-solution">Proposed Solution (Crew Recommendation)</label>
+                            <textarea id="manage-solution" rows="2" placeholder="Recommended fix or process change..."></textarea>
+                        </div>
+
+                        <!-- Section B: Status & Administration -->
+                        <h4 style="font-size:14px; font-weight:700; color:var(--primary-color); border-bottom:1px solid var(--border-color); padding-bottom:6px; margin-top:20px; margin-bottom:14px;">
+                            Status & Administrative Progress Tracking
+                        </h4>
+
                         <div class="form-grid-2col">
                             <div class="form-group">
                                 <label for="manage-status">Operational Status <span class="required">*</span></label>
@@ -858,33 +1531,21 @@
                                     <option value="ARCHIVED">ARCHIVED</option>
                                 </select>
                             </div>
-                            
                             <div class="form-group">
-                                <label for="manage-priority">Override Priority</label>
-                                <select id="manage-priority">
-                                    <option value="Low">Low</option>
-                                    <option value="Medium">Medium</option>
-                                    <option value="High">High</option>
-                                    <option value="Urgent">Urgent</option>
-                                </select>
+                                <label for="manage-owner">Assign Owner / POC (e.g. AVC Rep)</label>
+                                <input type="text" id="manage-owner" placeholder="e.g. Dave Jones, AVC Rep">
                             </div>
                         </div>
 
                         <div class="form-grid-2col mt-2">
                             <div class="form-group">
-                                <label for="manage-owner">Assign Owner / POC (e.g. AVC Rep)</label>
-                                <input type="text" id="manage-owner" placeholder="e.g. Dave Jones, AVC Rep">
-                            </div>
-                            
-                            <div class="form-group">
                                 <label for="manage-followup-date">Target Follow-Up Date</label>
                                 <input type="date" id="manage-followup-date">
                             </div>
-                        </div>
-
-                        <div class="form-group mt-2">
-                            <label for="manage-next-action">Next Tactical Action</label>
-                            <input type="text" id="manage-next-action" placeholder="e.g. Schedule meeting with operations director">
+                            <div class="form-group">
+                                <label for="manage-next-action">Next Tactical Action</label>
+                                <input type="text" id="manage-next-action" placeholder="e.g. Schedule meeting with operations director">
+                            </div>
                         </div>
 
                         <div class="form-group mt-2">
@@ -902,8 +1563,77 @@
                             <textarea id="manage-decision" rows="2" placeholder="Record the final outcome of the issue for records..."></textarea>
                         </div>
 
-                        <div class="form-footer-action mt-4">
-                            <button type="submit" class="btn btn-primary btn-block">SAVE UPDATE</button>
+                        <!-- Section C: Footer Buttons (Save + Delete) -->
+                        <div class="form-footer-action mt-4" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-top:1px solid var(--border-color); padding-top:16px;">
+                            <button type="button" class="btn btn-danger" id="btn-delete-current-ir" style="display:flex; align-items:center; gap:6px;">
+                                <span>🗑️</span> Delete This IR
+                            </button>
+                            <div style="display:flex; gap:10px;">
+                                <button type="button" class="btn btn-outline" onclick="closeModal('modal-manage-issue')">Cancel</button>
+                                <button type="submit" class="btn btn-primary" id="btn-save-issue-update">Save Changes</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD / EDIT MEETING NOTE -->
+    <div class="modal" id="modal-meeting-note">
+        <div class="modal-dialog" style="max-width: 650px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="modal-note-title">Add Committee Meeting Note</h3>
+                    <button class="close-modal" onclick="closeModal('modal-meeting-note')">&times;</button>
+                </div>
+                <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+                    <form id="admin-meeting-note-form" class="aviation-form">
+                        <input type="hidden" id="note-id">
+
+                        <div class="form-group">
+                            <label for="note-linked-ir">Link to Issue Request (IR# & Title) <span class="required">*</span></label>
+                            <select id="note-linked-ir" required>
+                                <option value="">-- Select Linked Issue Request --</option>
+                                <option value="GENERAL">General VC Committee Discussion (No Specific IR)</option>
+                                <!-- Populated dynamically from issues list -->
+                            </select>
+                        </div>
+
+                        <div class="form-grid-2col">
+                            <div class="form-group">
+                                <label for="note-date">Meeting Date <span class="required">*</span></label>
+                                <input type="date" id="note-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="note-author">Author / Note Taker <span class="required">*</span></label>
+                                <input type="text" id="note-author" required placeholder="e.g. Dave Jones, VC Rep">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="note-topic">Meeting Topic / Headline <span class="required">*</span></label>
+                            <input type="text" id="note-topic" required placeholder="e.g. AM-PM Rest Windows Discussion w/ Ops Leadership">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="note-attendees">Attendees / Participants</label>
+                            <input type="text" id="note-attendees" placeholder="e.g. Dave Jones (VC), Mark T. (VC), Sarah Jenkins (Scheduling Dir)">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="note-content">Discussion Points & Leadership Feedback <span class="required">*</span></label>
+                            <textarea id="note-content" required rows="4" placeholder="Detailed notes from the meeting, agreements reached, leadership stances, or committee feedback..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="note-actions">Action Items & Next Steps</label>
+                            <textarea id="note-actions" rows="2" placeholder="Tasks assigned, upcoming deadlines, next review date..."></textarea>
+                        </div>
+
+                        <div class="form-footer-action mt-4" style="display:flex; justify-content:space-between; align-items:center; gap:10px; border-top:1px solid var(--border-color); padding-top:14px;">
+                            <button type="button" class="btn btn-outline" onclick="closeModal('modal-meeting-note')">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="btn-save-note">Save Meeting Note</button>
                         </div>
                     </form>
                 </div>

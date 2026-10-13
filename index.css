@@ -2448,4 +2448,773 @@ body.mobile-view .filter-item {
     background-color: #ef4444;
 }
 
+/* ==========================================================================
+   Meeting Notes Feature Styles
+   ========================================================================== */
+.meeting-notes-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.meeting-note-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    background-color: var(--card-bg);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+.meeting-note-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+}
+.meeting-note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.meeting-note-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 0;
+}
+.meeting-note-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+.meeting-note-ir-badge {
+    background-color: rgba(0, 32, 91, 0.08);
+    color: var(--primary-color);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.meeting-note-body {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    white-space: pre-line;
+    margin-bottom: 14px;
+}
+.meeting-note-actions-block {
+    background: rgba(245, 158, 11, 0.08);
+    border-left: 3px solid var(--warning-color);
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+.meeting-note-actions-block strong {
+    color: var(--warning-color);
+}
+.meeting-note-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 12px;
+    margin-top: 8px;
+}
+
+/* ==========================================================================
+   Email Builder Template Feature Styles
+   ========================================================================== */
+.email-template-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+}
+.email-tpl-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: var(--card-bg);
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.email-tpl-btn:hover {
+    border-color: var(--primary-light);
+    background-color: var(--bg-primary);
+}
+.email-tpl-btn.active {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 32, 91, 0.04);
+    box-shadow: 0 0 0 1px var(--primary-color);
+}
+.email-tpl-btn .tpl-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+.email-tpl-btn .tpl-meta strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--navy-dark);
+}
+.email-tpl-btn .tpl-meta small {
+    display: block;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.email-builder-workspace {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+@media (max-width: 992px) {
+    .email-builder-workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+.email-editor-panel {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 18px;
+}
+.email-preview-panel {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: #ffffff;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+.email-preview-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.email-preview-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.email-mockup-window {
+    padding: 20px;
+}
+.email-mockup-meta {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+    color: #334155;
+}
+.email-mockup-body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: #1e293b;
+}
+
+/* Email Banner Styles */
+.email-header-banner {
+    background-color: #00205b;
+    color: #ffffff;
+    padding: 18px 22px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+.email-header-banner h2 {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin: 0 0 4px 0;
+    color: #ffffff;
+}
+.email-header-banner .banner-sub {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #93c5fd;
+    font-weight: 600;
+}
+.email-section-heading {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #00205b;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 4px;
+    margin-top: 18px;
+    margin-bottom: 8px;
+}
+.email-callout-box {
+    background-color: #f1f5f9;
+    border-left: 4px solid #00205b;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 12px 0;
+    font-size: 14px;
+}
+.email-signoff-block {
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #475569;
+}
+.email-tagline {
+    font-size: 12px;
+    font-weight: 600;
+    color: #00205b;
+    margin-top: 6px;
+}
+
+/* ==========================================================================
+   OPS SOP & POST-MEETING EXECUTION CHECKLIST STYLES
+   ========================================================================== */
+
+/* Checklist Card & Container */
+.sop-checklist-card {
+    border-left: 5px solid var(--accent-color);
+    margin-bottom: 24px;
+}
+
+.sop-checklist-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Progress Tracker */
+.sop-progress-wrapper {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 14px 18px;
+    margin-bottom: 20px;
+}
+
+.sop-progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sop-progress-track {
+    width: 100%;
+    height: 12px;
+    background-color: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+}
+
+.sop-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-color) 0%, #10b981 100%);
+    border-radius: 999px;
+    transition: width 0.35s ease;
+    width: 0%;
+}
+
+.sop-cycle-phases-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 11.5px;
+}
+
+.sop-phase-indicator {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 6px 10px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+}
+
+.sop-phase-indicator.active {
+    border-color: var(--accent-color);
+    color: var(--navy-dark);
+    font-weight: 700;
+    background-color: rgba(0, 163, 224, 0.08);
+}
+
+/* Checklist Items */
+.sop-checklist-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sop-checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 16px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.sop-checklist-item:hover {
+    border-color: var(--primary-light);
+    box-shadow: var(--shadow-sm);
+}
+
+.sop-checklist-item.is-completed {
+    background-color: rgba(16, 185, 129, 0.04);
+    border-color: rgba(16, 185, 129, 0.35);
+}
+
+.sop-item-checkbox-wrapper {
+    padding-top: 2px;
+    flex-shrink: 0;
+}
+
+.sop-item-checkbox {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: #10b981;
+}
+
+.sop-item-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.sop-item-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.sop-step-pill {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background-color: #00205b;
+    color: #ffffff;
+    text-transform: uppercase;
+}
+
+.sop-checklist-item.is-completed .sop-step-pill {
+    background-color: #10b981;
+}
+
+.sop-timeline-pill {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background-color: #e2e8f0;
+    color: #334155;
+}
+
+.sop-owner-pill {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background-color: rgba(0, 163, 224, 0.12);
+    color: #0284c7;
+    border: 1px solid rgba(0, 163, 224, 0.25);
+}
+
+.sop-item-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 2px 0 4px 0;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.sop-checklist-item.is-completed .sop-item-title {
+    color: #475569;
+    text-decoration: line-through;
+}
+
+.sop-item-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.sop-item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sop-item-timestamp {
+    font-size: 11.5px;
+    color: #10b981;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sop-item-action-btn {
+    font-size: 11.5px;
+    padding: 3px 9px;
+    border-radius: 4px;
+}
+
+/* Quick SOP Anchor Navigation */
+.sop-nav-pills {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 24px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.sop-nav-btn {
+    white-space: nowrap;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    border-radius: 999px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sop-nav-btn:hover {
+    border-color: var(--accent-color);
+    color: var(--navy-dark);
+    background-color: rgba(0, 163, 224, 0.06);
+}
+
+/* SOP Document View Container */
+.sop-doc-container {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 28px;
+    box-shadow: var(--shadow-sm);
+}
+
+.sop-doc-masthead {
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+}
+
+.sop-doc-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.sop-doc-title {
+    font-size: 26px;
+    font-weight: 850;
+    color: #00205b;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.5px;
+}
+
+.sop-doc-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0 0 16px 0;
+}
+
+.sop-purpose-callout {
+    background-color: rgba(0, 32, 91, 0.04);
+    border-left: 4px solid #00205b;
+    padding: 14px 18px;
+    border-radius: 4px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.sop-purpose-callout strong {
+    color: #00205b;
+}
+
+/* SOP Section Styles */
+.sop-section-block {
+    margin-bottom: 36px;
+    scroll-margin-top: 80px;
+}
+
+.sop-section-heading {
+    font-size: 18px;
+    font-weight: 800;
+    color: #00205b;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+}
+
+.sop-section-heading .heading-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: #00205b;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+/* SOP Cards & Grids */
+.sop-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.sop-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 900px) {
+    .sop-grid-3, .sop-grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sop-content-card {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 18px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.sop-content-card h4 {
+    font-size: 15px;
+    font-weight: 750;
+    color: #00205b;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.sop-content-card p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    margin: 0 0 10px 0;
+}
+
+.sop-content-card p:last-child {
+    margin-bottom: 0;
+}
+
+/* Callout Rules (Accuracy, Scheduling, Operating Principle) */
+.sop-rule-banner {
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 13.5px;
+    line-height: 1.6;
+}
+
+.sop-rule-banner.amber-warning {
+    background-color: rgba(245, 158, 11, 0.09);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-left: 5px solid #d97706;
+    color: #92400e;
+}
+
+.sop-rule-banner.blue-info {
+    background-color: rgba(0, 163, 224, 0.08);
+    border: 1px solid rgba(0, 163, 224, 0.3);
+    border-left: 5px solid #00A3E0;
+    color: #075985;
+}
+
+.sop-rule-banner.navy-principle {
+    background-color: rgba(0, 32, 91, 0.06);
+    border: 1px solid rgba(0, 32, 91, 0.25);
+    border-left: 5px solid #00205b;
+    color: #00205b;
+}
+
+.sop-rule-banner .rule-icon {
+    font-size: 20px;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.sop-rule-banner strong {
+    font-weight: 800;
+}
+
+/* Responsibility Matrix Cards */
+.sop-role-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #00205b;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 15px;
+    margin-bottom: 12px;
+}
+
+.sop-role-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #00205b;
+    margin: 0;
+}
+
+.sop-role-subtitle {
+    font-size: 12px;
+    font-weight: 600;
+    color: #00A3E0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 2px 0 12px 0;
+}
+
+.sop-deliverables-box {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border-color);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.sop-deliverables-box strong {
+    color: #00205b;
+}
+
+/* SOP Table Styles */
+.sop-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 12px 0;
+}
+
+.sop-table th {
+    background-color: #00205b;
+    color: #ffffff;
+    font-weight: 700;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 12.5px;
+    letter-spacing: 0.5px;
+}
+
+.sop-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+.sop-table tbody tr:nth-child(even) {
+    background-color: rgba(0, 32, 91, 0.02);
+}
+
+.sop-table tbody tr:hover {
+    background-color: rgba(0, 163, 224, 0.04);
+}
+
+/* Mobile Adjustments for SOP */
+@media (max-width: 768px) {
+    .sop-doc-container {
+        padding: 16px;
+    }
+    .sop-doc-title {
+        font-size: 20px;
+    }
+    .sop-checklist-item {
+        padding: 12px;
+        gap: 10px;
+    }
+    .sop-item-checkbox {
+        width: 24px;
+        height: 24px;
+    }
+    .sop-checklist-header-actions {
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: 8px;
+    }
+    .sop-cycle-phases-bar {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+
 

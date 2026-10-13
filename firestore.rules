@@ -47,5 +47,15 @@ service cloud.firestore {
                     
       allow update, delete: if true;
     }
+
+    // 4. Meeting Notes Collection: VC committee meeting discussions linked to IRs
+    match /meetingNotes/{noteId} {
+      allow read, write: if true;
+    }
+
+    // 5. System Settings Collection: System configuration settings (such as sopChecklist)
+    match /systemSettings/{settingId} {
+      allow read, write: if true;
+    }
   }
 }

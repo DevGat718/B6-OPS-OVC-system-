@@ -7,11 +7,138 @@
 let issues = [];
 let polls = [];
 let votes = [];
+let meetingNotes = [];
+let sopChecklist = [];
 
 // --- Default Production Data Structures (Clean State) ---
 const DEFAULT_ISSUES = [];
 const DEFAULT_POLLS = [];
 const DEFAULT_VOTES = [];
+const DEFAULT_MEETING_NOTES = [];
+
+// 10-Step Post-Meeting Execution Checklist (from JFK OPS Monthly SOP)
+const DEFAULT_SOP_CHECKLIST = [
+    {
+        id: 'step-1',
+        step: 1,
+        title: 'Collect and consolidate notes from all AVC attendees.',
+        phase: 'Days 1–2',
+        owner: 'Jess + Devin',
+        description: 'Review notes from Devin, Rob, and Jess; separate confirmed decisions from pending questions, and assemble initial discussion points.',
+        actionTarget: 'admin-notes',
+        actionLabel: 'View Meeting Notes',
+        completed: false,
+        completedAt: null
+    },
+    {
+        id: 'step-2',
+        step: 2,
+        title: 'Document leadership responses, decisions and action items.',
+        phase: 'Days 1–2',
+        owner: 'Jess + Devin',
+        description: 'Record specific leadership feedback, firm commitments, accountable POC owners, follow-up dates, and completion criteria.',
+        actionTarget: 'admin-notes',
+        actionLabel: 'Add Meeting Note',
+        completed: false,
+        completedAt: null
+    },
+    {
+        id: 'step-3',
+        step: 3,
+        title: 'Identify matters needing clarification or approval before sharing.',
+        phase: 'Days 1–2',
+        owner: 'Jess + Devin; Leadership as needed',
+        description: 'Enforce accuracy rule: "Discussed" is not "approved." Flag sensitive personnel issues, unverified items, or topics needing GM / Director sign-off.',
+        actionTarget: null,
+        actionLabel: null,
+        completed: false,
+        completedAt: null
+    },
+    {
+        id: 'step-4',
+        step: 4,
+        title: 'Assign portal issue updates and follow-ups to Rob.',
+        phase: 'Days 2–3',
+        owner: 'Rob',
+        description: 'Hand off confirmed leadership decisions, new assigned owners, and next review dates for system maintenance in the VC Portal.',
+        actionTarget: 'admin-issues',
+        actionLabel: 'Review IR Master Table',
+        completed: false,
+        completedAt: null
+    },
+    {
+        id: 'step-5',
+        step: 5,
+        title: 'Assign documentation review and recap verification to Jess.',
+        phase: 'Days 2–3',
+        owner: 'Jess',
+        description: 'Audit meeting logs, consolidate action summaries, cross-check against coordinator feedback, and verify completeness.',
+        actionTarget: 'admin-notes',
+        actionLabel: 'Review Notes & Actions',
+        completed: false,
+        completedAt: null
+    },
+    {
+        id: 'step-6',
+        step: 6,
+        title: 'Update confirmed statuses and follow-up dates in the VC Portal.',
+        phase: 'Days 2–3',
+        owner: 'Rob',
+        description: 'Edit issue records: update operational status, next tactical actions, internal notes, and follow-up review dates based on verified meeting outcomes.',
+        actionTarget: 'admin-issues',
+        actionLabel: 'Manage IR Statuses',
+        completed: false,
+        completedAt: null
+    },
+    {
+        id: 'step-7',
+        step: 7,
+        title: 'Draft monthly department email and any accompanying graphic.',
+        phase: 'Days 3–5',
+        owner: 'Devin',
+        description: 'Use the Email Builder (Option 2: Monthly Update or Option 1: Special Notice) to draft coordinator communications and prepare visual highlights.',
+        actionTarget: 'admin-email',
+        actionLabel: 'Open Email Builder',
+        completed: false,
+        completedAt: null
+    },
+    {
+        id: 'step-8',
+        step: 8,
+        title: 'Verify public wording and any leadership-sensitive information.',
+        phase: 'Days 5–7',
+        owner: 'Jess + Devin; Leadership as needed',
+        description: 'Fact-check public recap, ensure appropriate tone, remove internal-only notes, and get leadership confirmation if required.',
+        actionTarget: 'admin-email',
+        actionLabel: 'Preview Email Content',
+        completed: false,
+        completedAt: null
+    },
+    {
+        id: 'step-9',
+        step: 9,
+        title: 'Publish email and corresponding portal update.',
+        phase: 'Days 7–10',
+        owner: 'Devin',
+        description: 'Copy formatted plain text or rich HTML from Email Builder, send official department broadcast to coordinators, and post announcement.',
+        actionTarget: 'admin-email',
+        actionLabel: 'Copy & Send Email',
+        completed: false,
+        completedAt: null
+    },
+    {
+        id: 'step-10',
+        step: 10,
+        title: 'Prepare outstanding items for the Devin x Perri one-on-one.',
+        phase: 'When scheduled',
+        owner: 'Devin',
+        description: 'Assemble sensitive or detailed topics, unresolved questions, and long-term strategic items for flexible secondary checkpoint with leadership.',
+        actionTarget: 'admin-notes',
+        actionLabel: 'Review Outstanding Notes',
+        completed: false,
+        completedAt: null
+    }
+];
 
 // --- App Navigation Manager ---
 function switchTab(targetTabId) {
@@ -55,6 +182,8 @@ let isCloudConnected = false;
 let issuesUnsubscribe = null;
 let pollsUnsubscribe = null;
 let votesUnsubscribe = null;
+let meetingNotesUnsubscribe = null;
+let sopChecklistUnsubscribe = null;
 
 function updateCloudStatusUI(connected, customMsg) {
     const badge = document.getElementById('cloud-status-badge');
@@ -185,6 +314,41 @@ function startCloudListeners() {
             console.error("Firestore votes listener error:", err);
             updateCloudStatusUI(false, 'Sync Offline');
         });
+
+        // 4. Meeting Notes Realtime Listener
+        if (meetingNotesUnsubscribe) meetingNotesUnsubscribe();
+        meetingNotesUnsubscribe = db.collection('meetingNotes').onSnapshot(snapshot => {
+            const cloudNotes = [];
+            snapshot.forEach(doc => {
+                cloudNotes.push(doc.data());
+            });
+            cloudNotes.sort((a, b) => new Date(b.date || b.updatedAt || 0) - new Date(a.date || a.updatedAt || 0));
+            meetingNotes = cloudNotes;
+            saveMeetingNotesToStorage();
+            updateCloudStatusUI(true, 'Cloud Synced');
+            refreshActivePage();
+        }, err => {
+            console.error("Firestore meetingNotes listener error:", err);
+            updateCloudStatusUI(false, 'Sync Offline');
+        });
+
+        // 5. SOP Execution Checklist Realtime Listener
+        if (sopChecklistUnsubscribe) sopChecklistUnsubscribe();
+        sopChecklistUnsubscribe = db.collection('systemSettings').doc('sopChecklist').onSnapshot(doc => {
+            if (doc.exists && doc.data().checklist) {
+                const cloudChecklist = doc.data().checklist;
+                if (Array.isArray(cloudChecklist) && cloudChecklist.length > 0) {
+                    sopChecklist = DEFAULT_SOP_CHECKLIST.map(defItem => {
+                        const existing = cloudChecklist.find(p => p.id === defItem.id);
+                        return existing ? { ...defItem, ...existing } : { ...defItem };
+                    });
+                    localStorage.setItem('jfk_ops_sop_checklist', JSON.stringify(sopChecklist));
+                    renderSOPChecklist();
+                }
+            }
+        }, err => {
+            console.warn("Firestore sopChecklist listener notice:", err);
+        });
     } catch (e) {
         console.warn("Error establishing cloud listeners:", e);
         loadDataFromStorage();
@@ -198,12 +362,16 @@ function loadDataFromStorage() {
         localStorage.setItem('jfk_ops_issues', JSON.stringify([]));
         localStorage.setItem('jfk_ops_polls', JSON.stringify([]));
         localStorage.setItem('jfk_ops_votes', JSON.stringify([]));
+        localStorage.setItem('jfk_ops_meeting_notes', JSON.stringify([]));
+        localStorage.setItem('jfk_ops_sop_checklist', JSON.stringify(DEFAULT_SOP_CHECKLIST));
         localStorage.setItem('jfk_ops_v2_clean_init', 'true');
     }
 
     const storedIssues = localStorage.getItem('jfk_ops_issues');
     const storedPolls = localStorage.getItem('jfk_ops_polls');
     const storedVotes = localStorage.getItem('jfk_ops_votes');
+    const storedNotes = localStorage.getItem('jfk_ops_meeting_notes');
+    const storedChecklist = localStorage.getItem('jfk_ops_sop_checklist');
 
     if (storedIssues) {
         issues = JSON.parse(storedIssues);
@@ -225,6 +393,32 @@ function loadDataFromStorage() {
         votes = [...DEFAULT_VOTES];
         saveVotesToStorage();
     }
+
+    if (storedNotes) {
+        try {
+            meetingNotes = JSON.parse(storedNotes);
+        } catch (e) {
+            meetingNotes = [...DEFAULT_MEETING_NOTES];
+        }
+    } else {
+        meetingNotes = [...DEFAULT_MEETING_NOTES];
+        saveMeetingNotesToStorage();
+    }
+
+    if (storedChecklist) {
+        try {
+            const parsed = JSON.parse(storedChecklist);
+            sopChecklist = DEFAULT_SOP_CHECKLIST.map(defItem => {
+                const existing = parsed.find(p => p.id === defItem.id);
+                return existing ? { ...defItem, ...existing } : { ...defItem };
+            });
+        } catch (e) {
+            sopChecklist = JSON.parse(JSON.stringify(DEFAULT_SOP_CHECKLIST));
+        }
+    } else {
+        sopChecklist = JSON.parse(JSON.stringify(DEFAULT_SOP_CHECKLIST));
+        saveSOPChecklistToStorage(false);
+    }
 }
 
 function saveIssuesToStorage() {
@@ -237,6 +431,26 @@ function savePollsToStorage() {
 
 function saveVotesToStorage() {
     localStorage.setItem('jfk_ops_votes', JSON.stringify(votes));
+}
+
+function saveMeetingNotesToStorage() {
+    localStorage.setItem('jfk_ops_meeting_notes', JSON.stringify(meetingNotes));
+}
+
+function saveSOPChecklistToStorage(syncCloud = true) {
+    localStorage.setItem('jfk_ops_sop_checklist', JSON.stringify(sopChecklist));
+    if (syncCloud && isCloudConnected && db) {
+        try {
+            db.collection('systemSettings').doc('sopChecklist').set({
+                checklist: sopChecklist,
+                updatedAt: new Date().toISOString()
+            }, { merge: true }).catch(err => {
+                console.warn("Error saving sopChecklist to Firestore:", err);
+            });
+        } catch (e) {
+            console.warn("Firestore saveSOPChecklist error:", e);
+        }
+    }
 }
 
 // --- Cloud-aware Save & Delete Operations ---
@@ -254,6 +468,50 @@ async function saveIssueRecord(issueObj) {
             await db.collection('issues').doc(issueObj.irNumber).set(issueObj);
         } catch (e) {
             console.error("Error saving issue to Firestore:", e);
+        }
+    }
+}
+
+async function deleteIssueRecord(irNumber) {
+    issues = issues.filter(i => i.irNumber !== irNumber);
+    saveIssuesToStorage();
+
+    if (isCloudConnected && db) {
+        try {
+            await db.collection('issues').doc(irNumber).delete();
+        } catch (e) {
+            console.error("Error deleting issue from Firestore:", e);
+        }
+    }
+}
+
+async function saveMeetingNoteRecord(noteObj) {
+    const existingIdx = meetingNotes.findIndex(n => n.id === noteObj.id);
+    if (existingIdx >= 0) {
+        meetingNotes[existingIdx] = noteObj;
+    } else {
+        meetingNotes.unshift(noteObj);
+    }
+    saveMeetingNotesToStorage();
+
+    if (isCloudConnected && db) {
+        try {
+            await db.collection('meetingNotes').doc(noteObj.id).set(noteObj);
+        } catch (e) {
+            console.error("Error saving meeting note to Firestore:", e);
+        }
+    }
+}
+
+async function deleteMeetingNoteRecord(noteId) {
+    meetingNotes = meetingNotes.filter(n => n.id !== noteId);
+    saveMeetingNotesToStorage();
+
+    if (isCloudConnected && db) {
+        try {
+            await db.collection('meetingNotes').doc(noteId).delete();
+        } catch (e) {
+            console.error("Error deleting meeting note from Firestore:", e);
         }
     }
 }
@@ -332,7 +590,7 @@ async function resetPollVotesRecord(pollId) {
 async function wipeCloudDatabase() {
     if (isCloudConnected && db) {
         try {
-            const collections = ['issues', 'polls', 'votes'];
+            const collections = ['issues', 'polls', 'votes', 'meetingNotes'];
             for (const col of collections) {
                 const snapshot = await db.collection(col).get();
                 const batch = db.batch();
@@ -358,6 +616,8 @@ async function resetDemoData() {
         localStorage.setItem('jfk_ops_issues', JSON.stringify([]));
         localStorage.setItem('jfk_ops_polls', JSON.stringify([]));
         localStorage.setItem('jfk_ops_votes', JSON.stringify([]));
+        localStorage.setItem('jfk_ops_meeting_notes', JSON.stringify([]));
+        localStorage.setItem('jfk_ops_sop_checklist', JSON.stringify(DEFAULT_SOP_CHECKLIST));
         localStorage.setItem('jfk_ops_v2_clean_init', 'true');
         
         alert("System database has been wiped clean. Starting fresh!");
@@ -494,6 +754,7 @@ async function handleIssueSubmit(event) {
     const examples = document.getElementById('issue-examples').value.trim();
     const proposedSolution = document.getElementById('issue-solution').value.trim();
     const comments = document.getElementById('issue-comments').value.trim();
+    const isAnonymous = document.getElementById('submit-anonymous') ? document.getElementById('submit-anonymous').checked : false;
     
     const voteRad = document.querySelector('input[name="vote-consideration"]:checked');
     const voteRequested = voteRad ? voteRad.value : "Unsure / AVC Decide";
@@ -516,6 +777,7 @@ async function handleIssueSubmit(event) {
         name: name,
         id: employeeId,
         shift: shift,
+        isAnonymous: isAnonymous,
         date: new Date().toISOString(),
         category: category,
         title: title,
@@ -523,6 +785,7 @@ async function handleIssueSubmit(event) {
         impact: impact,
         examples: examples,
         proposedSolution: proposedSolution,
+        solution: proposedSolution,
         priority: priority,
         voteRequested: voteRequested,
         status: "SUBMITTED",
@@ -536,7 +799,9 @@ async function handleIssueSubmit(event) {
             {
                 status: "SUBMITTED",
                 timestamp: new Date().toISOString(),
-                note: `Issue request submitted by ${name} (ID: ${employeeId})`
+                note: isAnonymous
+                    ? `Issue request submitted anonymously by ${name} (ID: ${employeeId})`
+                    : `Issue request submitted by ${name} (ID: ${employeeId})`
             }
         ]
     };
@@ -1044,6 +1309,10 @@ function loadAdminPage() {
 
     // Load admin tables & forms
     loadAdminIssuesTable();
+    populateMeetingNotesIrDropdowns();
+    loadMeetingNotes();
+    loadSOPChecklist();
+    loadEmailBuilder();
     loadAdminPollsList();
     loadAdminVotersRegistry();
     loadAdminPollConnectSelect();
@@ -1074,15 +1343,19 @@ function loadAdminIssuesTable() {
             <td><strong class="font-mono">${ir.irNumber}</strong></td>
             <td><div style="font-weight:600; font-size:14.5px;">${ir.title}</div><small class="text-muted">${ir.description.substring(0, 50)}...</small></td>
             <td>${ir.category}</td>
-            <td>${ir.name}</td>
+            <td>
+                ${ir.name || '—'}
+                ${ir.isAnonymous ? '<span class="badge badge-accent" style="font-size:10px; margin-left:4px; padding:1px 5px;" title="Submitter requested anonymous display to peers">ANON</span>' : ''}
+            </td>
             <td><span class="font-mono text-muted" style="font-size:12.5px;">${ir.id}</span></td>
             <td><span class="badge badge-priority-${ir.priority.toLowerCase()}">${ir.priority}</span></td>
             <td><span class="badge badge-status-${ir.status.toLowerCase().replace(/ /g, '-')}">${ir.status}</span></td>
             <td style="font-family:var(--font-mono); font-size:12px;">${ir.followUpDate ? new Date(ir.followUpDate).toLocaleDateString() : '—'}</td>
             <td>
-                <div style="display:flex; gap:6px;">
-                    <button class="btn btn-xs btn-outline" onclick="openViewIssueModal('${ir.irNumber}')">View</button>
-                    <button class="btn btn-xs btn-primary" onclick="openManageIssueModal('${ir.irNumber}')">Manage</button>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <button class="btn btn-xs btn-outline" onclick="openViewIssueModal('${ir.irNumber}')" title="View details">View</button>
+                    <button class="btn btn-xs btn-primary" onclick="openManageIssueModal('${ir.irNumber}')" title="Edit request details">Edit</button>
+                    <button class="btn btn-xs btn-danger" onclick="confirmDeleteIssue('${ir.irNumber}')" title="Delete request">Delete</button>
                 </div>
             </td>
         `;
@@ -1091,6 +1364,994 @@ function loadAdminIssuesTable() {
 
     if (filtered.length === 0) {
         tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No matching requests found in database.</td></tr>';
+    }
+}
+
+async function confirmDeleteIssue(irNumber) {
+    const ir = issues.find(i => i.irNumber === irNumber);
+    if (!ir) return;
+
+    const confirmed = confirm(
+        `Are you sure you want to permanently delete Issue Request ${ir.irNumber} ("${ir.title}")?\n\nThis will remove the request from both cloud and local records. This action cannot be undone.`
+    );
+    if (confirmed) {
+        await deleteIssueRecord(irNumber);
+        alert(`Issue Request ${irNumber} has been permanently deleted.`);
+        loadAdminPage();
+        refreshActivePage();
+    }
+}
+
+// Helper: Escape HTML strings for safe rendering
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// ==========================================================================
+// Admin Feature: Meeting Notes (Linked to Issue Requests & Discussions)
+// ==========================================================================
+
+function populateMeetingNotesIrDropdowns() {
+    const filterSelect = document.getElementById('admin-filter-notes-ir');
+    const modalSelect = document.getElementById('note-linked-ir');
+
+    const filterVal = filterSelect ? filterSelect.value : 'all';
+    const modalVal = modalSelect ? modalSelect.value : '';
+
+    if (filterSelect) {
+        filterSelect.innerHTML = `
+            <option value="all">All Linked IRs & Discussions</option>
+            <option value="GENERAL">General Discussions (No IR)</option>
+        `;
+        issues.forEach(ir => {
+            const opt = document.createElement('option');
+            opt.value = ir.irNumber;
+            opt.textContent = `${ir.irNumber} — ${ir.title}`;
+            filterSelect.appendChild(opt);
+        });
+        filterSelect.value = filterVal;
+    }
+
+    if (modalSelect) {
+        modalSelect.innerHTML = `
+            <option value="">-- Select Linked Issue Request --</option>
+            <option value="GENERAL">General VC Committee Discussion (No Specific IR)</option>
+        `;
+        issues.forEach(ir => {
+            const opt = document.createElement('option');
+            opt.value = ir.irNumber;
+            opt.textContent = `${ir.irNumber} — ${ir.title}`;
+            modalSelect.appendChild(opt);
+        });
+        if (modalVal) modalSelect.value = modalVal;
+    }
+}
+
+function loadMeetingNotes() {
+    const container = document.getElementById('admin-meeting-notes-list');
+    if (!container) return;
+
+    const searchInput = document.getElementById('admin-notes-search');
+    const filterSelect = document.getElementById('admin-filter-notes-ir');
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const filterIr = filterSelect ? filterSelect.value : 'all';
+
+    container.innerHTML = '';
+
+    const filtered = meetingNotes.filter(n => {
+        const matchesIr = (filterIr === 'all') || (n.irNumber === filterIr);
+        const matchesQuery = !query ||
+            (n.topic && n.topic.toLowerCase().includes(query)) ||
+            (n.content && n.content.toLowerCase().includes(query)) ||
+            (n.author && n.author.toLowerCase().includes(query)) ||
+            (n.attendees && n.attendees.toLowerCase().includes(query)) ||
+            (n.actionItems && n.actionItems.toLowerCase().includes(query)) ||
+            (n.irNumber && n.irNumber.toLowerCase().includes(query));
+        return matchesIr && matchesQuery;
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="empty-notes-placeholder" style="grid-column: 1 / -1; padding: 40px 20px; text-align: center; background: var(--bg-primary); border: 2px dashed var(--border-color); border-radius: var(--border-radius);">
+                <div style="font-size: 32px; margin-bottom: 10px;">📝</div>
+                <h4 style="font-size: 16px; font-weight: 700; color: var(--primary-color); margin-bottom: 6px;">No Meeting Notes Found</h4>
+                <p class="text-muted" style="font-size: 13.5px; max-width: 480px; margin: 0 auto 16px auto;">
+                    Document leadership discussions, committee deliberations, or link notes directly to specific Issue Requests to keep all VC members aligned.
+                </p>
+                <button type="button" class="btn btn-primary" onclick="openMeetingNoteModal()">+ Add Your First Note</button>
+            </div>
+        `;
+        return;
+    }
+
+    filtered.forEach(note => {
+        const linkedIr = issues.find(i => i.irNumber === note.irNumber);
+        let linkedBadgeHtml = '';
+        if (note.irNumber === 'GENERAL' || !note.irNumber) {
+            linkedBadgeHtml = `<span class="note-badge-ir general">General Discussion</span>`;
+        } else {
+            const irTitle = linkedIr ? linkedIr.title : 'Linked Issue';
+            linkedBadgeHtml = `<span class="note-badge-ir" onclick="openViewIssueModal('${note.irNumber}')" title="Click to view details for ${note.irNumber}">🔗 ${note.irNumber}: ${escapeHtml(irTitle.substring(0, 32))}${irTitle.length > 32 ? '...' : ''}</span>`;
+        }
+
+        const dateStr = note.date ? new Date(note.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+
+        const card = document.createElement('div');
+        card.className = 'meeting-note-card';
+        card.innerHTML = `
+            <div class="meeting-note-card-header">
+                <div class="note-meta-badges">
+                    <span class="note-badge-date">📅 ${dateStr}</span>
+                    ${linkedBadgeHtml}
+                    <span class="note-badge-author">✍️ ${escapeHtml(note.author || 'VC Rep')}</span>
+                </div>
+                <div class="note-actions-btn-group">
+                    <button class="btn btn-xs btn-outline" onclick="openMeetingNoteModal('${note.id}')" title="Edit note">Edit</button>
+                    <button class="btn btn-xs btn-danger" onclick="confirmDeleteMeetingNote('${note.id}')" title="Delete note">Delete</button>
+                </div>
+            </div>
+
+            <h4 class="note-topic-title">${escapeHtml(note.topic)}</h4>
+
+            ${note.attendees ? `
+                <div class="note-attendees-row">
+                    <strong>Participants:</strong> ${escapeHtml(note.attendees)}
+                </div>
+            ` : ''}
+
+            <div class="note-content-body">
+                ${escapeHtml(note.content).replace(/\n/g, '<br>')}
+            </div>
+
+            ${note.actionItems ? `
+                <div class="note-actions-callout">
+                    <div class="note-actions-label">⚡ Next Steps & Action Items:</div>
+                    <div>${escapeHtml(note.actionItems).replace(/\n/g, '<br>')}</div>
+                </div>
+            ` : ''}
+        `;
+        container.appendChild(card);
+    });
+}
+
+function openMeetingNoteModal(noteId = null) {
+    populateMeetingNotesIrDropdowns();
+    const form = document.getElementById('admin-meeting-note-form');
+    if (!form) return;
+
+    if (noteId) {
+        const note = meetingNotes.find(n => n.id === noteId);
+        if (!note) return;
+        document.getElementById('modal-note-title').textContent = 'Edit Committee Meeting Note';
+        document.getElementById('note-id').value = note.id;
+        document.getElementById('note-linked-ir').value = note.irNumber || 'GENERAL';
+        document.getElementById('note-date').value = note.date || '';
+        document.getElementById('note-author').value = note.author || '';
+        document.getElementById('note-topic').value = note.topic || '';
+        document.getElementById('note-attendees').value = note.attendees || '';
+        document.getElementById('note-content').value = note.content || '';
+        document.getElementById('note-actions').value = note.actionItems || '';
+    } else {
+        document.getElementById('modal-note-title').textContent = 'Add Committee Meeting Note';
+        form.reset();
+        document.getElementById('note-id').value = '';
+        document.getElementById('note-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('note-author').value = 'JFK OPS AVC Rep';
+    }
+
+    openModal('modal-meeting-note');
+}
+
+async function handleMeetingNoteSave(event) {
+    event.preventDefault();
+
+    const noteId = document.getElementById('note-id').value.trim() || `NOTE-${Date.now()}`;
+    const irNumber = document.getElementById('note-linked-ir').value;
+    const date = document.getElementById('note-date').value;
+    const author = document.getElementById('note-author').value.trim();
+    const topic = document.getElementById('note-topic').value.trim();
+    const attendees = document.getElementById('note-attendees').value.trim();
+    const content = document.getElementById('note-content').value.trim();
+    const actionItems = document.getElementById('note-actions').value.trim();
+
+    const noteObj = {
+        id: noteId,
+        irNumber: irNumber,
+        date: date,
+        author: author,
+        topic: topic,
+        attendees: attendees,
+        content: content,
+        actionItems: actionItems,
+        updatedAt: new Date().toISOString()
+    };
+
+    await saveMeetingNoteRecord(noteObj);
+    closeModal('modal-meeting-note');
+    loadMeetingNotes();
+}
+
+async function confirmDeleteMeetingNote(noteId) {
+    const note = meetingNotes.find(n => n.id === noteId);
+    if (!note) return;
+
+    if (confirm(`Are you sure you want to delete this meeting note ("${note.topic}")?`)) {
+        await deleteMeetingNoteRecord(noteId);
+        loadMeetingNotes();
+    }
+}
+
+// ==========================================================================
+// Admin Feature: Ops SOP & Post-Meeting Execution Checklist
+// ==========================================================================
+function loadSOPChecklist() {
+    renderSOPChecklist();
+}
+
+function renderSOPChecklist() {
+    const container = document.getElementById('sop-checklist-items-list');
+    if (!container) return;
+
+    if (!sopChecklist || sopChecklist.length === 0) {
+        sopChecklist = JSON.parse(JSON.stringify(DEFAULT_SOP_CHECKLIST));
+        saveSOPChecklistToStorage(false);
+    }
+
+    let completedCount = 0;
+    container.innerHTML = '';
+
+    sopChecklist.forEach((item) => {
+        if (item.completed) completedCount++;
+
+        const itemEl = document.createElement('div');
+        itemEl.className = `sop-checklist-item ${item.completed ? 'is-completed' : ''}`;
+        itemEl.id = `sop-row-${item.id}`;
+
+        let timestampHtml = '';
+        if (item.completed && item.completedAt) {
+            const dateObj = new Date(item.completedAt);
+            const dateStr = dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            const timeStr = dateObj.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+            timestampHtml = `<span class="sop-item-timestamp">✓ Completed on ${dateStr}, ${timeStr}</span>`;
+        }
+
+        let actionBtnHtml = '';
+        if (item.actionTarget) {
+            actionBtnHtml = `<button type="button" class="btn btn-outline btn-xs sop-item-action-btn" onclick="switchAdminSubTab('${item.actionTarget}')">${escapeHtml(item.actionLabel)} →</button>`;
+        }
+
+        itemEl.innerHTML = `
+            <div class="sop-item-checkbox-wrapper">
+                <input type="checkbox" class="sop-item-checkbox" id="check-${item.id}" data-step-id="${item.id}" ${item.completed ? 'checked' : ''} aria-label="${escapeHtml(item.title)}">
+            </div>
+            <div class="sop-item-body">
+                <div class="sop-item-header">
+                    <span class="sop-step-pill">Step ${String(item.step).padStart(2, '0')}</span>
+                    <span class="sop-timeline-pill">⏱️ ${escapeHtml(item.phase)}</span>
+                    <span class="sop-owner-pill">👤 ${escapeHtml(item.owner)}</span>
+                </div>
+                <label for="check-${item.id}" class="sop-item-title">${escapeHtml(item.title)}</label>
+                <p class="sop-item-desc">${escapeHtml(item.description)}</p>
+                <div class="sop-item-footer">
+                    <div>${timestampHtml}</div>
+                    <div>${actionBtnHtml}</div>
+                </div>
+            </div>
+        `;
+
+        const checkbox = itemEl.querySelector('.sop-item-checkbox');
+        checkbox.addEventListener('change', (e) => {
+            toggleSOPChecklistStep(item.id, e.target.checked);
+        });
+
+        container.appendChild(itemEl);
+    });
+
+    // Update Progress Metrics
+    const totalCount = sopChecklist.length;
+    const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+    const progressFill = document.getElementById('sop-progress-fill');
+    if (progressFill) progressFill.style.width = `${percent}%`;
+
+    const percentText = document.getElementById('sop-progress-percent-text');
+    if (percentText) {
+        percentText.textContent = `${percent}% Completed (${completedCount} of ${totalCount})`;
+    }
+
+    const counterBadge = document.getElementById('sop-checklist-counter-badge');
+    if (counterBadge) {
+        counterBadge.textContent = `${completedCount} / ${totalCount} Completed (${percent}%)`;
+        counterBadge.className = 'badge';
+        if (completedCount === totalCount) {
+            counterBadge.classList.add('badge-success');
+        } else if (completedCount > 0) {
+            counterBadge.classList.add('badge-accent');
+        } else {
+            counterBadge.classList.add('badge-outline');
+        }
+    }
+
+    // Update Phase Indicator states
+    updatePhaseIndicators();
+}
+
+function updatePhaseIndicators() {
+    const isStepCompleted = (stepNum) => {
+        const it = sopChecklist.find(i => i.step === stepNum);
+        return it ? it.completed : false;
+    };
+
+    // Phase 1: Days 1-2 (Steps 1, 2, 3)
+    const p1 = document.getElementById('phase-ind-1');
+    if (p1) {
+        const done = isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(3);
+        const active = !done && (isStepCompleted(1) || isStepCompleted(2));
+        p1.classList.toggle('active', active || done);
+        p1.style.borderColor = done ? '#10b981' : '';
+    }
+
+    // Phase 2: Days 2-3 (Steps 4, 5, 6)
+    const p2 = document.getElementById('phase-ind-2');
+    if (p2) {
+        const done = isStepCompleted(4) && isStepCompleted(5) && isStepCompleted(6);
+        const active = !done && (isStepCompleted(4) || isStepCompleted(5));
+        p2.classList.toggle('active', active || done);
+        p2.style.borderColor = done ? '#10b981' : '';
+    }
+
+    // Phase 3: Days 3-5 (Step 7)
+    const p3 = document.getElementById('phase-ind-3');
+    if (p3) {
+        const done = isStepCompleted(7);
+        p3.classList.toggle('active', done);
+        p3.style.borderColor = done ? '#10b981' : '';
+    }
+
+    // Phase 4: Days 5-7 (Step 8)
+    const p4 = document.getElementById('phase-ind-4');
+    if (p4) {
+        const done = isStepCompleted(8);
+        p4.classList.toggle('active', done);
+        p4.style.borderColor = done ? '#10b981' : '';
+    }
+
+    // Phase 5: Days 7-10 (Steps 9, 10)
+    const p5 = document.getElementById('phase-ind-5');
+    if (p5) {
+        const done = isStepCompleted(9) && isStepCompleted(10);
+        const active = !done && isStepCompleted(9);
+        p5.classList.toggle('active', active || done);
+        p5.style.borderColor = done ? '#10b981' : '';
+    }
+}
+
+function toggleSOPChecklistStep(stepId, isChecked) {
+    const item = sopChecklist.find(i => i.id === stepId);
+    if (item) {
+        item.completed = isChecked;
+        item.completedAt = isChecked ? new Date().toISOString() : null;
+        saveSOPChecklistToStorage();
+        renderSOPChecklist();
+    }
+}
+
+function handleResetSOPChecklist() {
+    if (confirm("Reset the Post-Meeting Execution Checklist for a new monthly cycle? This will uncheck all 10 tasks so you can begin tracking the next month fresh.")) {
+        sopChecklist.forEach(item => {
+            item.completed = false;
+            item.completedAt = null;
+        });
+        saveSOPChecklistToStorage();
+        renderSOPChecklist();
+    }
+}
+
+function handleMarkAllSOPChecklist() {
+    const nowIso = new Date().toISOString();
+    sopChecklist.forEach(item => {
+        item.completed = true;
+        if (!item.completedAt) item.completedAt = nowIso;
+    });
+    saveSOPChecklistToStorage();
+    renderSOPChecklist();
+}
+
+// ==========================================================================
+// Admin Feature: Email Builder Template System
+// ==========================================================================
+let activeEmailTemplate = 'special-notice';
+let currentEmailSubject = '';
+let currentEmailPlainText = '';
+let currentEmailHtml = '';
+
+function loadEmailBuilder() {
+    populateEmailIrDropdown();
+    switchEmailTemplate(activeEmailTemplate);
+}
+
+function populateEmailIrDropdown() {
+    const select = document.getElementById('email-ir-select');
+    if (!select) return;
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">-- Select IR to Auto-Fill Fields --</option>';
+    issues.forEach(ir => {
+        const opt = document.createElement('option');
+        opt.value = ir.irNumber;
+        opt.textContent = `${ir.irNumber} — ${ir.title}`;
+        select.appendChild(opt);
+    });
+    if (currentVal) select.value = currentVal;
+}
+
+function switchEmailTemplate(tplKey) {
+    activeEmailTemplate = tplKey;
+
+    // Update active tab buttons
+    document.querySelectorAll('.email-tpl-btn').forEach(btn => {
+        if (btn.getAttribute('data-tpl') === tplKey) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // Update preview mode badge
+    const badge = document.getElementById('email-preview-mode-badge');
+    if (badge) {
+        if (tplKey === 'special-notice') {
+            badge.textContent = 'Special Notice';
+        } else if (tplKey === 'monthly-update') {
+            badge.textContent = 'Monthly Update';
+        } else {
+            badge.textContent = 'Custom Canvas';
+        }
+    }
+
+    renderEmailFormFields(tplKey);
+    updateEmailPreview();
+}
+
+function renderEmailFormFields(tplKey) {
+    const container = document.getElementById('email-form-fields-container');
+    if (!container) return;
+
+    const todayStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const monthYearStr = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    if (tplKey === 'special-notice') {
+        container.innerHTML = `
+            <div class="form-group">
+                <label for="email-sn-topic">Notice Topic / Issue Subject <span class="required">*</span></label>
+                <input type="text" id="email-sn-topic" value="AM-PM Rest Window Compliance & Station Support" placeholder="e.g. Peak Operational Staffing, Rest Windows">
+            </div>
+
+            <div class="form-grid-2col">
+                <div class="form-group">
+                    <label for="email-sn-date">Meeting / Notice Date <span class="required">*</span></label>
+                    <input type="text" id="email-sn-date" value="${todayStr}">
+                </div>
+                <div class="form-group">
+                    <label for="email-sn-greeting">Salutation</label>
+                    <input type="text" id="email-sn-greeting" value="Good Day JFK OPS Coordinators,">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email-sn-intro">Intro Statement</label>
+                <textarea id="email-sn-intro" rows="2">The Operations Values Committee (AVC) recently met with Station Operations Leadership to address coordinator feedback and discuss actionable solutions.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-sn-update">1. What's the Update? (Context & What Happened) <span class="required">*</span></label>
+                <textarea id="email-sn-update" rows="3" placeholder="Provide background and context of the leadership discussion...">Coordinators raised concerns regarding extended peak departure windows and consecutive shift coverage. The committee presented operational data gathered from frontline shifts to highlight the necessity of structured rest intervals.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-sn-response">2. Leadership Response / Operational Decision <span class="required">*</span></label>
+                <textarea id="email-sn-response" rows="3" placeholder="Explain leadership's formal response or agreement...">Leadership acknowledged the impact on coordination tempo and committed to enforcing mandatory relief rotation during peak bank hours, with additional supervisory floor presence on high-volume days.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-sn-impact">3. What This Means for OPS Coordinators <span class="required">*</span></label>
+                <textarea id="email-sn-impact" rows="3" placeholder="Outline specific impact to daily work or coordinator shifts...">Coordinators will receive assigned relief windows during 4+ hour operational stretches. Coordinators should flag any unassigned relief coverage directly to the shift lead and AVC representative.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-sn-next">4. Next Steps & Timeline <span class="required">*</span></label>
+                <textarea id="email-sn-next" rows="2" placeholder="Next check-in, follow-up timeline, or review milestones...">A two-week evaluation period begins immediately. AVC will sync with Station Leadership on the 1st of next month to review compliance and coordinator feedback.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-sn-cta">Stay Informed & Engaged Note</label>
+                <textarea id="email-sn-cta" rows="2">If you have additional questions or observations regarding this update, connect with your AVC representatives or submit feedback via the JFK OPS AVC System.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-sn-signoff">Committee Sign-off</label>
+                <textarea id="email-sn-signoff" rows="3">Same Crew. Higher Standards.
+Operations Values Committee (AVC)
+JFK Terminal 5 | JetBlue Airways</textarea>
+            </div>
+        `;
+    } else if (tplKey === 'monthly-update') {
+        const curYr = new Date().getFullYear();
+        container.innerHTML = `
+            <div class="form-grid-2col">
+                <div class="form-group">
+                    <label for="email-mu-period">Update Month / Period <span class="required">*</span></label>
+                    <input type="text" id="email-mu-period" list="email-periods-list" value="${monthYearStr}" placeholder="e.g. ${monthYearStr}, Q1 ${curYr}">
+                    <datalist id="email-periods-list">
+                        <option value="${monthYearStr}">
+                        <option value="Q1 ${curYr}">
+                        <option value="Q2 ${curYr}">
+                        <option value="Q3 ${curYr}">
+                        <option value="Q4 ${curYr}">
+                        <option value="Q1 ${curYr + 1}">
+                        <option value="Q2 ${curYr + 1}">
+                        <option value="Q3 ${curYr + 1}">
+                        <option value="Q4 ${curYr + 1}">
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label for="email-mu-greeting">Salutation</label>
+                    <input type="text" id="email-mu-greeting" value="Hello JFK OPS Coordinators,">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email-mu-intro">Intro Statement</label>
+                <textarea id="email-mu-intro" rows="3">Here is your monthly update from the Operations Values Committee (AVC). Our role is to ensure coordinator concerns, ideas, and operational priorities are directly represented in discussions with leadership.
+
+Here is a summary of what we addressed this past month:</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-mu-discussed">1. What We Discussed <span class="required">*</span></label>
+                <textarea id="email-mu-discussed" rows="3" placeholder="• Topic 1&#10;• Topic 2">• AM-PM Rest Window Compliance & Station Support
+• Coordinator Workload Balancing during Severe Weather Irregular Operations
+• Operations Desk Radio & Dual-Monitor Replacement Requests</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-mu-responses">2. Leadership Updates & Responses <span class="required">*</span></label>
+                <textarea id="email-mu-responses" rows="3" placeholder="• Outcome 1&#10;• Outcome 2">• Station Director approved revised peak relief rotation protocol.
+• IT procurement confirmed replacement headsets and monitors arriving before month-end.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-mu-progress">3. Progress & Completed Items</label>
+                <textarea id="email-mu-progress" rows="3" placeholder="• Completed item 1">• Standardized Shift Hand-off checklist rolled out across all coordinator consoles.
+• Bi-weekly check-ins established between AVC Leads and Duty Managers.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-mu-next">4. What's Next?</label>
+                <textarea id="email-mu-next" rows="2" placeholder="• Next focus areas">• Monthly leadership review scheduled for next week to evaluate IAT training timeline and upcoming holiday staffing buffers.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-mu-cta">5. Your Voice Matters (Call-to-Action)</label>
+                <textarea id="email-mu-cta" rows="2">Have a concern or suggestion? Submit an Issue Request or participate in active coordinator votes on the JFK OPS AVC System.
+
+Thank you for your dedication to safe and reliable operations every day.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-mu-signoff">Committee Sign-off</label>
+                <textarea id="email-mu-signoff" rows="3">Same Crew. Higher Standards.
+Operations Values Committee (AVC)
+JFK Terminal 5 | JetBlue Airways</textarea>
+            </div>
+        `;
+    } else {
+        container.innerHTML = `
+            <div class="form-group">
+                <label for="email-cc-subject">Email Subject Line <span class="required">*</span></label>
+                <input type="text" id="email-cc-subject" value="JFK OPS AVC | Operational Update" placeholder="Subject for coordinators and leadership">
+            </div>
+
+            <div class="form-group">
+                <label for="email-cc-title">Announcement Headline / Banner <span class="required">*</span></label>
+                <input type="text" id="email-cc-title" value="IMPORTANT OPERATIONAL ANNOUNCEMENT" placeholder="Main headline">
+            </div>
+
+            <div class="form-grid-2col">
+                <div class="form-group">
+                    <label for="email-cc-date">Date</label>
+                    <input type="text" id="email-cc-date" value="${todayStr}">
+                </div>
+                <div class="form-group">
+                    <label for="email-cc-greeting">Salutation</label>
+                    <input type="text" id="email-cc-greeting" value="Good Day JFK OPS Coordinators,">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email-cc-body">Message Body (Blank Canvas) <span class="required">*</span></label>
+                <textarea id="email-cc-body" rows="6" placeholder="Write your custom communication or update here...">Please review the following operational advisory regarding coordinator workflows and upcoming station procedures.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-cc-action">Action Items / Call to Action (Optional)</label>
+                <textarea id="email-cc-action" rows="2" placeholder="Specific action items for coordinators or leadership...">Please reach out to your shift AVC representative with any operational feedback or questions.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="email-cc-signoff">Signature & Sign-off</label>
+                <textarea id="email-cc-signoff" rows="3">Same Crew. Higher Standards.
+Operations Values Committee (AVC)
+JFK Terminal 5 | JetBlue Airways</textarea>
+            </div>
+        `;
+    }
+
+    // Attach input event listeners on all inputs inside the form for real-time preview
+    container.querySelectorAll('input, textarea').forEach(elem => {
+        elem.addEventListener('input', updateEmailPreview);
+    });
+}
+
+function updateEmailPreview() {
+    const subjectElem = document.getElementById('email-preview-subject-text');
+    const bodyElem = document.getElementById('email-preview-rendered-body');
+    if (!bodyElem) return;
+
+    if (activeEmailTemplate === 'special-notice') {
+        const topic = document.getElementById('email-sn-topic')?.value || 'Special Notice';
+        const date = document.getElementById('email-sn-date')?.value || '';
+        const greeting = document.getElementById('email-sn-greeting')?.value || '';
+        const intro = document.getElementById('email-sn-intro')?.value || '';
+        const update = document.getElementById('email-sn-update')?.value || '';
+        const response = document.getElementById('email-sn-response')?.value || '';
+        const impact = document.getElementById('email-sn-impact')?.value || '';
+        const next = document.getElementById('email-sn-next')?.value || '';
+        const cta = document.getElementById('email-sn-cta')?.value || '';
+        const signoff = document.getElementById('email-sn-signoff')?.value || '';
+
+        currentEmailSubject = `JFK OPS AVC × Leadership | Special Notice — ${topic}`;
+        if (subjectElem) subjectElem.textContent = currentEmailSubject;
+
+        // Plain Text Representation
+        currentEmailPlainText = `JFK OPS AVC × LEADERSHIP | SPECIAL NOTICE
+${date}
+----------------------------------------------------------------------
+${greeting}
+
+${intro}
+
+WHAT'S THE UPDATE?
+${update}
+
+LEADERSHIP'S RESPONSE / DECISION
+${response}
+
+WHAT THIS MEANS FOR OPS COORDINATORS
+${impact}
+
+NEXT STEPS
+${next}
+
+STAY INFORMED & ENGAGED
+${cta}
+
+----------------------------------------------------------------------
+${signoff}`;
+
+        // Rich HTML Representation
+        currentEmailHtml = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 680px; margin: 0 auto; color: #1c2430; line-height: 1.6;">
+                <div style="background: #00205B; color: #ffffff; padding: 22px 24px; border-radius: 8px 8px 0 0; border-bottom: 4px solid #00A3E0;">
+                    <div style="font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #00A3E0; font-weight: 700;">JetBlue Airways • JFK Terminal 5</div>
+                    <h2 style="margin: 6px 0 2px 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">JFK OPS AVC × LEADERSHIP | SPECIAL NOTICE</h2>
+                    <div style="font-size: 13px; color: #cbd5e1; font-weight: 500;">${escapeHtml(date)}</div>
+                </div>
+                <div style="background: #ffffff; padding: 26px 24px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
+                    <p style="font-size: 15px; font-weight: 600; color: #00205B; margin-top: 0;">${escapeHtml(greeting)}</p>
+                    <p style="font-size: 14px; color: #334155;">${escapeHtml(intro)}</p>
+
+                    <div style="margin: 20px 0;">
+                        <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.8px; color: #00205B; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 8px; font-weight: 800;">
+                            What's the Update?
+                        </h3>
+                        <p style="font-size: 14px; color: #334155; margin: 0;">${escapeHtml(update).replace(/\n/g, '<br>')}</p>
+                    </div>
+
+                    <div style="margin: 20px 0; background: #f0f7ff; border-left: 4px solid #0033A0; padding: 14px 16px; border-radius: 0 6px 6px 0;">
+                        <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.8px; color: #00205B; margin: 0 0 6px 0; font-weight: 800;">
+                            Leadership's Response / Decision
+                        </h3>
+                        <p style="font-size: 14px; color: #1e3a8a; margin: 0;">${escapeHtml(response).replace(/\n/g, '<br>')}</p>
+                    </div>
+
+                    <div style="margin: 20px 0;">
+                        <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.8px; color: #00205B; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 8px; font-weight: 800;">
+                            What This Means for OPS Coordinators
+                        </h3>
+                        <p style="font-size: 14px; color: #334155; margin: 0;">${escapeHtml(impact).replace(/\n/g, '<br>')}</p>
+                    </div>
+
+                    <div style="margin: 20px 0; background: #fffbeb; border-left: 4px solid #f59e0b; padding: 14px 16px; border-radius: 0 6px 6px 0;">
+                        <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.8px; color: #92400e; margin: 0 0 6px 0; font-weight: 800;">
+                            Next Steps & Timeline
+                        </h3>
+                        <p style="font-size: 14px; color: #78350f; margin: 0;">${escapeHtml(next).replace(/\n/g, '<br>')}</p>
+                    </div>
+
+                    <div style="margin: 20px 0; padding-top: 12px; border-top: 1px dashed #cbd5e1;">
+                        <h4 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin-bottom: 6px;">Stay Informed & Engaged</h4>
+                        <p style="font-size: 13.5px; color: #475569; margin: 0;">${escapeHtml(cta).replace(/\n/g, '<br>')}</p>
+                    </div>
+
+                    <div style="margin-top: 28px; padding-top: 16px; border-top: 2px solid #00205B; color: #00205B;">
+                        <div style="font-weight: 800; font-style: italic; font-size: 15px; color: #0033A0;">Same Crew. Higher Standards.</div>
+                        <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">Operations Values Committee (AVC)</div>
+                        <div style="font-size: 12px; color: #64748b;">JFK Terminal 5 | JetBlue Airways</div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        bodyElem.innerHTML = currentEmailHtml;
+
+    } else if (activeEmailTemplate === 'monthly-update') {
+        const period = document.getElementById('email-mu-period')?.value || '';
+        const greeting = document.getElementById('email-mu-greeting')?.value || '';
+        const intro = document.getElementById('email-mu-intro')?.value || '';
+        const discussed = document.getElementById('email-mu-discussed')?.value || '';
+        const responses = document.getElementById('email-mu-responses')?.value || '';
+        const progress = document.getElementById('email-mu-progress')?.value || '';
+        const next = document.getElementById('email-mu-next')?.value || '';
+        const cta = document.getElementById('email-mu-cta')?.value || '';
+        const signoff = document.getElementById('email-mu-signoff')?.value || '';
+
+        currentEmailSubject = `JFK OPS AVC | Monthly Department Update — ${period}`;
+        if (subjectElem) subjectElem.textContent = currentEmailSubject;
+
+        currentEmailPlainText = `JFK OPS AVC | MONTHLY DEPARTMENT UPDATE
+${period}
+----------------------------------------------------------------------
+${greeting}
+
+${intro}
+
+1. WHAT WE DISCUSSED
+${discussed}
+
+2. LEADERSHIP UPDATES & RESPONSES
+${responses}
+
+3. PROGRESS & COMPLETED ITEMS
+${progress}
+
+4. WHAT'S NEXT?
+${next}
+
+5. YOUR VOICE MATTERS
+${cta}
+
+----------------------------------------------------------------------
+${signoff}`;
+
+        currentEmailHtml = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 680px; margin: 0 auto; color: #1c2430; line-height: 1.6;">
+                <div style="background: #00205B; color: #ffffff; padding: 22px 24px; border-radius: 8px 8px 0 0; border-bottom: 4px solid #00A3E0;">
+                    <div style="font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #00A3E0; font-weight: 700;">JetBlue Airways • JFK Terminal 5</div>
+                    <h2 style="margin: 6px 0 2px 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">JFK OPS AVC | MONTHLY DEPARTMENT UPDATE</h2>
+                    <div style="font-size: 13px; color: #cbd5e1; font-weight: 500;">${escapeHtml(period)}</div>
+                </div>
+                <div style="background: #ffffff; padding: 26px 24px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
+                    <p style="font-size: 15px; font-weight: 600; color: #00205B; margin-top: 0;">${escapeHtml(greeting)}</p>
+                    <p style="font-size: 14px; color: #334155;">${escapeHtml(intro).replace(/\n/g, '<br>')}</p>
+
+                    <div style="margin: 22px 0;">
+                        <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; color: #00205B; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 10px; font-weight: 800;">
+                            1. What We Discussed
+                        </h3>
+                        <div style="font-size: 14px; color: #334155; line-height: 1.7;">${escapeHtml(discussed).replace(/\n/g, '<br>')}</div>
+                    </div>
+
+                    <div style="margin: 22px 0; background: #f0f7ff; border-left: 4px solid #0033A0; padding: 14px 16px; border-radius: 0 6px 6px 0;">
+                        <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; color: #00205B; margin: 0 0 8px 0; font-weight: 800;">
+                            2. Leadership Updates & Responses
+                        </h3>
+                        <div style="font-size: 14px; color: #1e3a8a; line-height: 1.7;">${escapeHtml(responses).replace(/\n/g, '<br>')}</div>
+                    </div>
+
+                    <div style="margin: 22px 0; background: #ecfdf5; border-left: 4px solid #10b981; padding: 14px 16px; border-radius: 0 6px 6px 0;">
+                        <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; color: #065f46; margin: 0 0 8px 0; font-weight: 800;">
+                            3. Progress & Completed Items
+                        </h3>
+                        <div style="font-size: 14px; color: #047857; line-height: 1.7;">${escapeHtml(progress).replace(/\n/g, '<br>')}</div>
+                    </div>
+
+                    <div style="margin: 22px 0;">
+                        <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; color: #00205B; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 10px; font-weight: 800;">
+                            4. What's Next?
+                        </h3>
+                        <div style="font-size: 14px; color: #334155; line-height: 1.7;">${escapeHtml(next).replace(/\n/g, '<br>')}</div>
+                    </div>
+
+                    <div style="margin: 22px 0; padding-top: 14px; border-top: 1px dashed #cbd5e1;">
+                        <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; color: #00205B; margin-bottom: 8px; font-weight: 800;">
+                            5. Your Voice Matters
+                        </h3>
+                        <div style="font-size: 14px; color: #475569; line-height: 1.7;">${escapeHtml(cta).replace(/\n/g, '<br>')}</div>
+                    </div>
+
+                    <div style="margin-top: 28px; padding-top: 16px; border-top: 2px solid #00205B; color: #00205B;">
+                        <div style="font-weight: 800; font-style: italic; font-size: 15px; color: #0033A0;">Same Crew. Higher Standards.</div>
+                        <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">Operations Values Committee (AVC)</div>
+                        <div style="font-size: 12px; color: #64748b;">JFK Terminal 5 | JetBlue Airways</div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        bodyElem.innerHTML = currentEmailHtml;
+
+    } else {
+        const subject = document.getElementById('email-cc-subject')?.value || 'AVC Announcement';
+        const title = document.getElementById('email-cc-title')?.value || 'OPERATIONAL UPDATE';
+        const date = document.getElementById('email-cc-date')?.value || '';
+        const greeting = document.getElementById('email-cc-greeting')?.value || '';
+        const body = document.getElementById('email-cc-body')?.value || '';
+        const action = document.getElementById('email-cc-action')?.value || '';
+        const signoff = document.getElementById('email-cc-signoff')?.value || '';
+
+        currentEmailSubject = subject;
+        if (subjectElem) subjectElem.textContent = currentEmailSubject;
+
+        currentEmailPlainText = `${title}
+${date}
+----------------------------------------------------------------------
+${greeting}
+
+${body}
+
+${action ? `NEXT STEPS / ACTION:\n${action}\n` : ''}
+----------------------------------------------------------------------
+${signoff}`;
+
+        currentEmailHtml = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 680px; margin: 0 auto; color: #1c2430; line-height: 1.6;">
+                <div style="background: #00205B; color: #ffffff; padding: 22px 24px; border-radius: 8px 8px 0 0; border-bottom: 4px solid #00A3E0;">
+                    <div style="font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #00A3E0; font-weight: 700;">JetBlue Airways • JFK Terminal 5</div>
+                    <h2 style="margin: 6px 0 2px 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">${escapeHtml(title)}</h2>
+                    <div style="font-size: 13px; color: #cbd5e1; font-weight: 500;">${escapeHtml(date)}</div>
+                </div>
+                <div style="background: #ffffff; padding: 26px 24px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
+                    <p style="font-size: 15px; font-weight: 600; color: #00205B; margin-top: 0;">${escapeHtml(greeting)}</p>
+                    <div style="font-size: 14px; color: #334155; line-height: 1.7; margin: 18px 0;">
+                        ${escapeHtml(body).replace(/\n/g, '<br>')}
+                    </div>
+
+                    ${action ? `
+                        <div style="margin: 22px 0; background: #f0f7ff; border-left: 4px solid #0033A0; padding: 14px 16px; border-radius: 0 6px 6px 0;">
+                            <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.8px; color: #00205B; margin: 0 0 6px 0; font-weight: 800;">
+                                Next Steps & Action Items
+                            </h3>
+                            <p style="font-size: 14px; color: #1e3a8a; margin: 0;">${escapeHtml(action).replace(/\n/g, '<br>')}</p>
+                        </div>
+                    ` : ''}
+
+                    <div style="margin-top: 28px; padding-top: 16px; border-top: 2px solid #00205B; color: #00205B;">
+                        <div style="font-weight: 800; font-style: italic; font-size: 15px; color: #0033A0;">Same Crew. Higher Standards.</div>
+                        <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">Operations Values Committee (AVC)</div>
+                        <div style="font-size: 12px; color: #64748b;">JFK Terminal 5 | JetBlue Airways</div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        bodyElem.innerHTML = currentEmailHtml;
+    }
+}
+
+function applySelectedIrToEmail() {
+    const select = document.getElementById('email-ir-select');
+    if (!select || !select.value) {
+        alert("Please select an Issue Request from the dropdown to import.");
+        return;
+    }
+
+    const ir = issues.find(i => i.irNumber === select.value);
+    if (!ir) return;
+
+    if (activeEmailTemplate === 'special-notice') {
+        const topicInput = document.getElementById('email-sn-topic');
+        const updateInput = document.getElementById('email-sn-update');
+        const responseInput = document.getElementById('email-sn-response');
+        const impactInput = document.getElementById('email-sn-impact');
+        const nextInput = document.getElementById('email-sn-next');
+
+        if (topicInput) topicInput.value = `[${ir.irNumber}] ${ir.title}`;
+        if (updateInput) updateInput.value = `The Operations Values Committee (AVC) reviewed request ${ir.irNumber} regarding "${ir.title}".\n\nBackground: ${ir.description}${ir.impact ? '\n\nOperational Impact: ' + ir.impact : ''}`;
+        if (responseInput) responseInput.value = ir.leadershipResponse || ir.decisionSummary || 'Leadership is currently reviewing this request with station operations.';
+        if (impactInput) impactInput.value = ir.proposedSolution || ir.solution || 'Coordinators are advised to continue standard operating procedures while follow-ups are underway.';
+        if (nextInput) nextInput.value = `Next tactical action: ${ir.nextAction || 'Follow up with leadership'}. Target date: ${ir.followUpDate || 'TBD'}.`;
+
+    } else if (activeEmailTemplate === 'monthly-update') {
+        const discussedInput = document.getElementById('email-mu-discussed');
+        const responseInput = document.getElementById('email-mu-responses');
+
+        if (discussedInput) {
+            discussedInput.value += `\n• [${ir.irNumber}] ${ir.title}`;
+        }
+        if (responseInput && ir.leadershipResponse) {
+            responseInput.value += `\n• ${ir.irNumber}: ${ir.leadershipResponse}`;
+        }
+
+    } else {
+        const subjectInput = document.getElementById('email-cc-subject');
+        const titleInput = document.getElementById('email-cc-title');
+        const bodyInput = document.getElementById('email-cc-body');
+        const actionInput = document.getElementById('email-cc-action');
+
+        if (subjectInput) subjectInput.value = `JFK OPS AVC | ${ir.irNumber}: ${ir.title}`;
+        if (titleInput) titleInput.value = `UPDATE: ${ir.irNumber} — ${ir.title}`;
+        if (bodyInput) bodyInput.value = `Issue Description:\n${ir.description}\n\nLeadership Stance / Response:\n${ir.leadershipResponse || 'In review with station management.'}`;
+        if (actionInput) actionInput.value = `Target follow-up: ${ir.followUpDate || 'Ongoing'}. Next action: ${ir.nextAction || 'None specified.'}`;
+    }
+
+    updateEmailPreview();
+}
+
+async function copyEmailText() {
+    if (!currentEmailPlainText) updateEmailPreview();
+    const btn = document.getElementById('btn-copy-email-text');
+    try {
+        await navigator.clipboard.writeText(currentEmailPlainText);
+        if (btn) {
+            const original = btn.innerHTML;
+            btn.innerHTML = '✅ Copied Plain Text!';
+            setTimeout(() => { btn.innerHTML = original; }, 2000);
+        }
+    } catch (err) {
+        console.error("Failed to copy plain text:", err);
+        alert("Clipboard copy failed. Please select text manually.");
+    }
+}
+
+async function copyEmailHtml() {
+    if (!currentEmailHtml) updateEmailPreview();
+    const btn = document.getElementById('btn-copy-email-html');
+    try {
+        if (navigator.clipboard && window.ClipboardItem) {
+            const htmlBlob = new Blob([currentEmailHtml], { type: 'text/html' });
+            const textBlob = new Blob([currentEmailPlainText], { type: 'text/plain' });
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    'text/html': htmlBlob,
+                    'text/plain': textBlob
+                })
+            ]);
+        } else {
+            await navigator.clipboard.writeText(currentEmailHtml);
+        }
+        if (btn) {
+            const original = btn.innerHTML;
+            btn.innerHTML = '✅ Copied Rich HTML!';
+            setTimeout(() => { btn.innerHTML = original; }, 2000);
+        }
+    } catch (err) {
+        console.warn("Direct HTML copy failed, falling back to text copy:", err);
+        try {
+            await navigator.clipboard.writeText(currentEmailPlainText);
+            if (btn) {
+                const original = btn.innerHTML;
+                btn.innerHTML = '✅ Copied as Text!';
+                setTimeout(() => { btn.innerHTML = original; }, 2000);
+            }
+        } catch (e2) {
+            alert("Clipboard copy failed.");
+        }
     }
 }
 
@@ -1380,8 +2641,63 @@ function openViewIssueModal(irNumber) {
         });
     }
 
+    // Process submitter info respecting anonymous status
+    let submitterHtml = '';
+    if (role === 'admin') {
+        submitterHtml = `
+            <div class="details-row-split" style="background:var(--bg-primary); padding:10px 14px; border-radius:var(--border-radius); border:1px solid var(--border-color); margin-bottom:12px;">
+                <div class="details-group" style="margin-bottom:0;">
+                    <div class="details-label">Submitter (Admin View)</div>
+                    <div class="details-value" style="font-weight:600;">
+                        ${escapeHtml(ir.name || 'Not provided')}
+                        ${ir.isAnonymous ? '<span class="badge badge-accent" style="font-size:10.5px; margin-left:6px;">🔒 ANONYMOUS (Hidden from Crew)</span>' : ''}
+                    </div>
+                </div>
+                <div class="details-group" style="margin-bottom:0;">
+                    <div class="details-label">Employee ID & Shift</div>
+                    <div class="details-value font-mono">
+                        ${escapeHtml(ir.id || '—')} ${ir.shift ? `(${escapeHtml(ir.shift)} Shift)` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        if (ir.isAnonymous) {
+            submitterHtml = `
+                <div class="details-row-split" style="background:var(--bg-primary); padding:10px 14px; border-radius:var(--border-radius); border:1px solid var(--border-color); margin-bottom:12px;">
+                    <div class="details-group" style="margin-bottom:0;">
+                        <div class="details-label">Submitter</div>
+                        <div class="details-value text-muted" style="font-style:italic;">
+                            🔒 Anonymous Crewmember
+                        </div>
+                    </div>
+                    <div class="details-group" style="margin-bottom:0;">
+                        <div class="details-label">Shift</div>
+                        <div class="details-value">
+                            ${ir.shift ? `${escapeHtml(ir.shift)} Shift` : 'Not specified'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            submitterHtml = `
+                <div class="details-row-split" style="background:var(--bg-primary); padding:10px 14px; border-radius:var(--border-radius); border:1px solid var(--border-color); margin-bottom:12px;">
+                    <div class="details-group" style="margin-bottom:0;">
+                        <div class="details-label">Submitter</div>
+                        <div class="details-value" style="font-weight:600;">${escapeHtml(ir.name || 'Crewmember')}</div>
+                    </div>
+                    <div class="details-group" style="margin-bottom:0;">
+                        <div class="details-label">Shift</div>
+                        <div class="details-value font-mono">${ir.shift ? `${escapeHtml(ir.shift)} Shift` : '—'}</div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
     const html = `
         <div class="details-grid">
+            ${submitterHtml}
             <div class="details-row-split">
                 <div class="details-group">
                     <div class="details-label">Category</div>
@@ -1481,23 +2797,53 @@ function openViewIssueModal(irNumber) {
     openModal('modal-view-issue');
 }
 
-// Admin Edit Status Modal
+// Admin Edit & Manage Request Modal
 function openManageIssueModal(irNumber) {
     const ir = issues.find(item => item.irNumber === irNumber);
     if (!ir) return;
 
-    document.getElementById('modal-manage-ir-number').textContent = `Manage Request ${ir.irNumber}`;
+    document.getElementById('modal-manage-ir-number').textContent = `Edit & Manage Request ${ir.irNumber}`;
     document.getElementById('manage-issue-idx').value = ir.irNumber;
 
-    // Populate fields
-    document.getElementById('manage-status').value = ir.status;
-    document.getElementById('manage-priority').value = ir.priority;
+    // 1. Populate Core Issue Details
+    document.getElementById('manage-title').value = ir.title || '';
+    document.getElementById('manage-category').value = ir.category || 'Policy / Procedure';
+    document.getElementById('manage-priority').value = ir.priority || 'Medium';
+    document.getElementById('manage-submitter-name').value = ir.name || '';
+    document.getElementById('manage-submitter-id').value = ir.id || '';
+    document.getElementById('manage-submitter-shift').value = ir.shift || 'AM';
+    const anonCheckbox = document.getElementById('manage-is-anonymous');
+    if (anonCheckbox) anonCheckbox.checked = !!ir.isAnonymous;
+    document.getElementById('manage-description').value = ir.description || '';
+    document.getElementById('manage-impact').value = ir.impact || '';
+    document.getElementById('manage-examples').value = ir.examples || '';
+    document.getElementById('manage-solution').value = ir.proposedSolution || ir.solution || '';
+
+    // 2. Populate Status & Administrative Tracking Fields
+    document.getElementById('manage-status').value = ir.status || 'SUBMITTED';
     document.getElementById('manage-owner').value = ir.owner || '';
     document.getElementById('manage-followup-date').value = ir.followUpDate || '';
     document.getElementById('manage-next-action').value = ir.nextAction || '';
     document.getElementById('manage-leadership-response').value = ir.leadershipResponse || '';
     document.getElementById('manage-internal-notes').value = ir.notes || '';
     document.getElementById('manage-decision').value = ir.decisionSummary || '';
+
+    // 3. Configure Delete button inside modal
+    const deleteBtn = document.getElementById('btn-delete-current-ir');
+    if (deleteBtn) {
+        deleteBtn.onclick = async () => {
+            const confirmed = confirm(
+                `Are you sure you want to permanently delete Issue Request ${ir.irNumber} ("${ir.title}")?\n\nThis will remove the request from both cloud and local records. This action cannot be undone.`
+            );
+            if (confirmed) {
+                closeModal('modal-manage-issue');
+                await deleteIssueRecord(ir.irNumber);
+                alert(`Issue Request ${ir.irNumber} has been permanently deleted.`);
+                loadAdminPage();
+                refreshActivePage();
+            }
+        };
+    }
 
     openModal('modal-manage-issue');
 }
@@ -1513,14 +2859,34 @@ async function handleManageIssueSave(event) {
     const newStatus = document.getElementById('manage-status').value;
     const newPriority = document.getElementById('manage-priority').value;
 
-    ir.status = newStatus;
+    // Update Core Fields
+    ir.title = document.getElementById('manage-title').value.trim();
+    ir.category = document.getElementById('manage-category').value;
     ir.priority = newPriority;
+    ir.name = document.getElementById('manage-submitter-name').value.trim();
+    ir.id = document.getElementById('manage-submitter-id').value.trim();
+    ir.shift = document.getElementById('manage-submitter-shift').value;
+    const anonCheckbox = document.getElementById('manage-is-anonymous');
+    ir.isAnonymous = anonCheckbox ? anonCheckbox.checked : false;
+    ir.description = document.getElementById('manage-description').value.trim();
+    ir.impact = document.getElementById('manage-impact').value.trim();
+    ir.examples = document.getElementById('manage-examples').value.trim();
+    const solVal = document.getElementById('manage-solution').value.trim();
+    ir.proposedSolution = solVal;
+    ir.solution = solVal;
+
+    // Update Status & Tracking Fields
+    ir.status = newStatus;
     ir.owner = document.getElementById('manage-owner').value.trim();
     ir.followUpDate = document.getElementById('manage-followup-date').value;
     ir.nextAction = document.getElementById('manage-next-action').value.trim();
     ir.leadershipResponse = document.getElementById('manage-leadership-response').value.trim();
     ir.notes = document.getElementById('manage-internal-notes').value.trim();
     ir.decisionSummary = document.getElementById('manage-decision').value.trim();
+
+    if (!ir.history) {
+        ir.history = [];
+    }
 
     // Add event log if status changes
     if (oldStatus !== newStatus) {
@@ -1533,7 +2899,7 @@ async function handleManageIssueSave(event) {
         ir.history.push({
             status: ir.status,
             timestamp: new Date().toISOString(),
-            note: `Record fields updated by Admin`
+            note: `Issue details & progress updated by Admin`
         });
     }
 
@@ -1541,6 +2907,7 @@ async function handleManageIssueSave(event) {
     closeModal('modal-manage-issue');
     alert(`Request ${irNumber} updated successfully.`);
     loadAdminPage();
+    refreshActivePage();
 }
 
 // Crewmember ballot modal
@@ -1793,6 +3160,30 @@ function bindEvents() {
     document.getElementById('admin-filter-category').addEventListener('change', loadAdminIssuesTable);
     document.getElementById('admin-filter-status').addEventListener('change', loadAdminIssuesTable);
 
+    // Meeting Notes filters and actions
+    const notesSearch = document.getElementById('admin-notes-search');
+    if (notesSearch) notesSearch.addEventListener('input', loadMeetingNotes);
+    const notesFilterIr = document.getElementById('admin-filter-notes-ir');
+    if (notesFilterIr) notesFilterIr.addEventListener('change', loadMeetingNotes);
+    const btnCreateNote = document.getElementById('btn-open-create-note');
+    if (btnCreateNote) btnCreateNote.addEventListener('click', () => openMeetingNoteModal());
+    const meetingNoteForm = document.getElementById('admin-meeting-note-form');
+    if (meetingNoteForm) meetingNoteForm.addEventListener('submit', handleMeetingNoteSave);
+
+    // Email Builder actions
+    document.querySelectorAll('.email-tpl-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tpl = btn.getAttribute('data-tpl');
+            if (tpl) switchEmailTemplate(tpl);
+        });
+    });
+    const btnApplyIrEmail = document.getElementById('btn-apply-ir-to-email');
+    if (btnApplyIrEmail) btnApplyIrEmail.addEventListener('click', applySelectedIrToEmail);
+    const btnCopyEmailText = document.getElementById('btn-copy-email-text');
+    if (btnCopyEmailText) btnCopyEmailText.addEventListener('click', copyEmailText);
+    const btnCopyEmailHtml = document.getElementById('btn-copy-email-html');
+    if (btnCopyEmailHtml) btnCopyEmailHtml.addEventListener('click', copyEmailHtml);
+
     document.getElementById('admin-voters-search').addEventListener('input', loadAdminVotersRegistry);
     document.getElementById('btn-export-voters').addEventListener('click', exportVoterLogToCSV);
 
@@ -1831,14 +3222,42 @@ function bindEvents() {
     // 7. Admin subtab toggles
     document.querySelectorAll('.admin-tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
-
-            btn.classList.add('active');
             const targetTab = btn.getAttribute('data-admin-tab');
-            document.getElementById(`admin-tab-${targetTab}`).classList.add('active');
+            switchAdminSubTab(targetTab);
         });
     });
+
+    // 8. Ops SOP & Checklist controls
+    const resetSopBtn = document.getElementById('btn-sop-reset-checklist');
+    if (resetSopBtn) {
+        resetSopBtn.addEventListener('click', handleResetSOPChecklist);
+    }
+    const markAllSopBtn = document.getElementById('btn-sop-mark-all');
+    if (markAllSopBtn) {
+        markAllSopBtn.addEventListener('click', handleMarkAllSOPChecklist);
+    }
+}
+
+// Global Admin Subtab Switcher
+function switchAdminSubTab(targetTab) {
+    document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+
+    const btn = document.querySelector(`[data-admin-tab="${targetTab}"]`);
+    if (btn) btn.classList.add('active');
+    const content = document.getElementById(`admin-tab-${targetTab}`);
+    if (content) content.classList.add('active');
+
+    // Trigger tab-specific loaders
+    if (targetTab === 'admin-sop') {
+        loadSOPChecklist();
+    } else if (targetTab === 'admin-email') {
+        loadEmailBuilder();
+    } else if (targetTab === 'admin-notes') {
+        loadMeetingNotes();
+    } else if (targetTab === 'admin-issues') {
+        loadAdminIssuesTable();
+    }
 }
 
 // --- Set current Year and Quarter on Load ---
@@ -1857,21 +3276,10 @@ function initCurrentQuarterSelector() {
         currentQuarter = 'Q4';
     }
     
-    // Set Year selector
+    // Dynamically populate Year selector (guaranteed up to 2055, and rolls forward indefinitely)
     const yearSelect = document.getElementById('report-year-select');
     if (yearSelect) {
-        let optionExists = false;
-        for (let i = 0; i < yearSelect.options.length; i++) {
-            if (yearSelect.options[i].value === String(currentYear)) {
-                optionExists = true;
-                break;
-            }
-        }
-        if (optionExists) {
-            yearSelect.value = String(currentYear);
-        } else {
-            yearSelect.value = '2026';
-        }
+        populateYearDropdown(yearSelect, currentYear);
     }
     
     // Set Quarter selector
@@ -1879,6 +3287,58 @@ function initCurrentQuarterSelector() {
     if (quarterSelect) {
         quarterSelect.value = currentQuarter;
     }
+}
+
+// Dynamically generate and maintain year list up to 2055 and beyond
+function populateYearDropdown(yearSelect, currentYear) {
+    if (!yearSelect) return;
+
+    const minYear = 2024;
+    // Guaranteed up to at least 2055, and automatically extends if the year exceeds 2055
+    const maxYear = Math.max(2055, currentYear + 2);
+
+    const currentlySelected = yearSelect.value || String(currentYear);
+
+    yearSelect.innerHTML = '';
+    // Populate in descending order: newest years on top
+    for (let yr = maxYear; yr >= minYear; yr--) {
+        const opt = document.createElement('option');
+        opt.value = String(yr);
+        opt.textContent = String(yr);
+        yearSelect.appendChild(opt);
+    }
+
+    // Default to currentYear, or preserve user's valid selection
+    if (currentlySelected && parseInt(currentlySelected) >= minYear && parseInt(currentlySelected) <= maxYear) {
+        yearSelect.value = currentlySelected;
+    } else {
+        yearSelect.value = String(currentYear);
+    }
+}
+
+// Bridge from Quarterly Transparency Updates to Email Builder
+function draftQuarterlyEmailUpdate() {
+    const yearVal = document.getElementById('report-year-select').value;
+    const quarterVal = document.getElementById('report-quarter-select').value;
+    
+    // Switch role to admin if currently non-admin
+    const roleSelect = document.getElementById('role-select');
+    if (roleSelect && roleSelect.value !== 'admin') {
+        roleSelect.value = 'admin';
+        handleRoleChange();
+    }
+    
+    switchTab('admin');
+    switchAdminSubTab('admin-email');
+    switchEmailTemplate('monthly-update');
+    
+    setTimeout(() => {
+        const periodInput = document.getElementById('email-mu-period');
+        if (periodInput) {
+            periodInput.value = `${quarterVal} ${yearVal} Transparency Update`;
+            updateEmailPreview();
+        }
+    }, 120);
 }
 
 // --- App Initialization ---
